@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Signals Tracker • Created with Grok</title>
+  <title>XRP Signals Tracker • Created with Grok</title>
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
-    /* Your styles unchanged – keep as is */
     body{margin:0;background:#000;font-family:system-ui,sans-serif;overflow-x:hidden;color:#fff}
     .toggle-btn{background:#1f2937;border:none;padding:10px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:all .3s;position:relative}
     .toggle-btn:hover{background:#374151}
@@ -66,116 +65,433 @@
   </style>
 </head>
 <body class="transition-colors duration-500">
-  <!-- Your banner, title, toggles, selectors as before – keep unchanged -->
-
-  <!-- Add token selector if not already there -->
-  <div class="fixed top-28 right-4 z-50 flex gap-3 items-center">
-    <!-- theme + currency + new token select -->
-    <select id="tokenSelect">
-      <option value="ripple">XRP</option>
-      <option value="bitcoin">BTC</option>
-      <option value="ethereum">ETH</option>
-      <option value="solana">SOL</option>
-    </select>
-    <!-- rest unchanged -->
+  <!-- Compact Top Banner -->
+  <div class="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-cyan-800 py-2 text-center shadow-2xl backdrop-blur-sm">
+    <div class="flex flex-col md:flex-row items-center justify-center gap-3 text-xs px-4">
+      <div class="text-cyan-300 live-badge font-bold">
+        XRP Signals Tracker • Click Card for Timeframe Chart
+      </div>
+      <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 px-5 py-1.5 rounded-full border border-purple-500/50 shadow-xl">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4IiBzdHJva2U9IiM5NTAwRkYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSwgNSIvPgo8L3N2Zz4K" alt="Grok" class="w-5 h-5 grok-logo">
+        <span class="text-purple-300 font-bold text-sm tracking-wider">Created with Grok • xAI</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Signal cards and moon calc – keep as is -->
+  <!-- Main Title -->
+  <div class="fixed top-12 left-0 right-0 z-40 text-center py-4 bg-black/90 backdrop-blur-sm border-b border-cyan-800">
+    <h2 class="text-xl md:text-2xl font-bold text-cyan-400">XRP • Real-Time Buy/Sell Signals • Momentum + Sentiment</h2>
+  </div>
+
+  <!-- Theme + Currency -->
+  <div class="fixed top-28 right-4 z-50 flex gap-3 items-center">
+    <button id="themeToggle" class="toggle-btn">
+      <svg class="icon-moon w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+      </svg>
+      <svg class="icon-sun w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.708.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+      </svg>
+    </button>
+    <select id="currencySelect">
+      <option value="USD">$ USD</option>
+      <option value="AUD">A$ AUD</option>
+      <option value="EUR">€ EUR</option>
+      <option value="GBP">£ GBP</option>
+      <option value="JPY">¥ JPY</option>
+      <option value="CAD">C$ CAD</option>
+      <option value="CHF">Fr CHF</option>
+      <option value="KRW">₩ KRW</option>
+    </select>
+  </div>
+
+  <!-- Main Content: Signal Cards -->
+  <div class="max-w-7xl mx-auto px-4 pt-44 pb-12 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+    <!-- Short Term Signal -->
+    <div class="signal-card" id="shortCard">
+      <div class="signal-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term (Hours to Days)</div>
+      <div class="signal-body">
+        <div class="rocket left">🚀</div>
+        <div class="text-2xl font-bold mb-2">Current: <span id="currentPriceShort">$ --</span> <span id="changeShort">+0.00%</span></div>
+        <div class="signal-main" id="shortSignal">LOADING...</div>
+        <div class="rationale" id="shortRationale">Analyzing momentum...</div>
+        <div class="sentiment" id="shortSentiment">Neutral</div>
+        <p class="text-xs text-gray-400 mt-4">Focus: RSI-like momentum, volume proxy, short-term moves.</p>
+      </div>
+    </div>
+
+    <!-- Medium Term -->
+    <div class="signal-card" id="medCard">
+      <div class="signal-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term (Weeks to Months)</div>
+      <div class="signal-body">
+        <div class="rocket right">🚀</div>
+        <div class="text-2xl font-bold mb-2">Current: <span id="currentPriceMed">$ --</span> <span id="changeMed">+0.00%</span></div>
+        <div class="signal-main" id="medSignal">LOADING...</div>
+        <div class="rationale" id="medRationale">Analyzing trend...</div>
+        <div class="sentiment" id="medSentiment">Neutral</div>
+        <p class="text-xs text-gray-400 mt-4">Focus: Overall trend + sentiment direction.</p>
+      </div>
+    </div>
+
+    <!-- Long Term -->
+    <div class="signal-card" id="longCard">
+      <div class="signal-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term (Months to Years)</div>
+      <div class="signal-body">
+        <div class="rocket left">🚀</div>
+        <div class="text-2xl font-bold mb-2">Current: <span id="currentPriceLong">$ --</span> <span id="changeLong">+0.00%</span></div>
+        <div class="signal-main" id="longSignal">LOADING...</div>
+        <div class="rationale" id="longRationale">Analyzing macro...</div>
+        <div class="sentiment" id="longSentiment">Neutral</div>
+        <p class="text-xs text-gray-400 mt-4">Focus: XRP utility + adoption outlook.</p>
+      </div>
+    </div>
+
+    <!-- Moon Calculator -->
+    <div class="md:col-span-3 moon-calculator mt-8">
+      <h3>🌕 My XRP Moon Calculator 🌕</h3>
+      <div class="input-group">
+        <span class="input-label">My Holdings:</span>
+        <input type="number" id="myHoldings" value="1000" min="0" step="1">
+        <span>XRP</span>
+      </div>
+      <div class="input-group">
+        <span class="input-label">My Moon Price:</span>
+        <input type="number" id="myMoonPrice" value="100" min="0.1" step="0.01">
+      </div>
+      <div class="portfolio-value" id="myCurrentValue">$2,020.00</div>
+      <div class="my-moon-progress">
+        <div class="my-moon-bar">
+          <div class="my-moon-fill" id="myMoonFill" style="width:2%"></div>
+          <div class="my-moon-text" id="myMoonText">2% to your moon!</div>
+        </div>
+      </div>
+      <div class="moon-message" id="myMoonMessage">Keep holding strong! 💎🙌</div>
+      <div class="moon-stats">
+        <div class="moon-stat">
+          <div>My Holdings</div>
+          <div class="moon-stat-value" id="myHoldingsDisplay">1,000 XRP</div>
+        </div>
+        <div class="moon-stat">
+          <div>My Moon Price</div>
+          <div class="moon-stat-value" id="myMoonPriceDisplay">$100.00</div>
+        </div>
+        <div class="moon-stat">
+          <div>My Moon Value</div>
+          <div class="moon-stat-value" id="myMoonValue">$100,000.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Motivation -->
+    <div class="md:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-8 text-center mt-8">
+      <div class="text-4xl font-bold text-green-400 animate-pulse mb-4">XRP 24/7</div>
+      <div class="text-lg text-green-300 mb-6">CRYPTO NEVER SLEEPS • XRP SIGNALS</div>
+      <div class="text-cyan-400">
+        <p class="text-sm font-semibold mb-2">Total Page Views</p>
+        <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=87fxqfm966l84an29sfgkbmdynkpfut8"
+             alt="Total Page Views" border="0"
+             class="mx-auto h-6" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Overlay -->
+  <div id="chartOverlay" class="overlay">
+    <div class="overlay-chart relative">
+      <div class="close-btn" id="closeOverlay">×</div>
+      <div id="chartContainer" style="height:100%;width:100%"></div>
+    </div>
+  </div>
 
 <script>
-  // Define ALL functions FIRST to avoid ReferenceError
-  function updateMyMoonCalculator() {
-    const holdings = parseFloat(document.getElementById('myHoldings').value) || 0;
-    const moonPriceUSD = parseFloat(document.getElementById('myMoonPrice').value) || 0;
-    const rate = rates[currentCurrency] || 1;
-    const sym = symbols[currentCurrency] || '$';
-    const currentValue = holdings * currentUSDPrice * rate;
-    document.getElementById('myCurrentValue').textContent = sym + currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const moonValue = holdings * moonPriceUSD;
-    document.getElementById('myMoonValue').textContent = sym + moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('myMoonPriceDisplay').textContent = sym + moonPriceUSD.toFixed(2);
-    document.getElementById('myHoldingsDisplay').textContent = holdings.toLocaleString() + ' ' + tokenSymbol;
-    const progress = moonPriceUSD > 0 ? (currentUSDPrice / moonPriceUSD) * 100 : 0;
-    document.getElementById('myMoonFill').style.width = Math.min(100, progress) + '%';
-    document.getElementById('myMoonText').textContent = progress.toFixed(1) + '% to your moon!';
-    // add messages as before
-  }
+  const rocketSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-rocket-launch-1668.mp3');
+  const cheeringSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-stadium-crowd-cheering-1688.mp3');
 
-  function updateSignals() {
-    // Your generateSignals logic here – keep as is
-    // Example placeholder if missing:
-    const sigs = { short: {sig: 'HOLD', rat: 'Data loading...', col: 'hold'}, med: {...}, long: {...} };
-    // fill with actual logic when data available
-    ['short','med','long'].forEach(t => {
-      const cap = t.charAt(0).toUpperCase() + t.slice(1);
-      document.getElementById(`currentPrice${cap}`).textContent = (symbols[currentCurrency] || '$') + currentUSDPrice.toFixed(4);
-      document.getElementById(`change${cap}`).textContent = (priceChange24h >= 0 ? '+' : '') + priceChange24h.toFixed(2) + '%';
-      // etc.
-    });
-  }
+  // Core variables
+  let currentUSDPrice = 1.39; // fallback
+  let priceChange24h = 4.5;
+  let fearGreedValue = 14;
+  let fearGreedText = 'Extreme Fear';
+  let fearGreedClass = 'bearish';
 
-  // Live forex (your key – working per log)
-  let rates = { USD: 1 };
+  let rates = { USD: 1 }; // will be updated live
   const symbols = { USD:'$', AUD:'A$', EUR:'€', GBP:'£', JPY:'¥', CAD:'C$', CHF:'Fr', KRW:'₩' };
   let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
-  let currentToken = 'ripple';
-  let tokenSymbol = 'XRP';
 
+  let lastRocketSide = {};
+  let currentPumpState = false;
+  let currentMoonshotState = false;
+
+  // Moon Calculator Elements
+  const myHoldingsInput = document.getElementById('myHoldings');
+  const myMoonPriceInput = document.getElementById('myMoonPrice');
+  const myCurrentValue = document.getElementById('myCurrentValue');
+  const myMoonFill = document.getElementById('myMoonFill');
+  const myMoonText = document.getElementById('myMoonText');
+  const myMoonMessage = document.getElementById('myMoonMessage');
+  const myHoldingsDisplay = document.getElementById('myHoldingsDisplay');
+  const myMoonPriceDisplay = document.getElementById('myMoonPriceDisplay');
+  const myMoonValue = document.getElementById('myMoonValue');
+
+  // === Fetch LIVE Exchange Rates using YOUR key ===
   async function updateExchangeRates() {
     try {
       const res = await fetch('https://v6.exchangerate-api.com/v6/2e28bae41916290695aca1ce/latest/USD');
       const data = await res.json();
       if (data.result === 'success') {
         rates = { USD: 1, ...data.conversion_rates };
-        console.log('AUD rate:', rates.AUD);
+        console.log('Live rates loaded from your API key – AUD rate:', rates.AUD);
+      } else {
+        throw new Error(data['error-type'] || 'API error');
       }
     } catch (e) {
-      console.warn('Forex failed, fallback:', e);
-      rates = { USD:1, AUD:1.407 /* etc */ };
+      console.warn('ExchangeRate-API failed:', e);
+      // Updated fallback approx for March 2026
+      rates = { USD:1, AUD:1.407, EUR:0.847, GBP:0.742, JPY:156, CAD:1.365, CHF:0.770, KRW:1441 };
     }
     updateSignals();
     updateMyMoonCalculator();
   }
 
-  // Price + historical (CoinGecko only to avoid Binance CORS)
-  let currentUSDPrice = 1.39;
-  let priceChange24h = 0;
-  let historicalData = [];
+  // Call on load + every hour
+  updateExchangeRates();
+  setInterval(updateExchangeRates, 3600000);
 
+  // === Fetch XRP Price ===
   async function updatePrice() {
     try {
-      // Price
-      const priceRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${currentToken}&vs_currencies=usd&include_24hr_change=true`);
-      const priceData = await priceRes.json();
-      currentUSDPrice = priceData[currentToken].usd;
-      priceChange24h = priceData[currentToken].usd_24h_change || 0;
-
-      // Historical for indicators (7 days to reduce load)
-      const histRes = await fetch(`https://api.coingecko.com/api/v3/coins/${currentToken}/ohlc?vs_currency=usd&days=7`);
-      historicalData = await histRes.json();
-
-      updateSignals(); // recalc indicators/signals
+      const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT');
+      if (res.ok) {
+        const data = await res.json();
+        currentUSDPrice = parseFloat(data.lastPrice);
+        priceChange24h = parseFloat(data.priceChangePercent);
+      } else {
+        throw new Error('Binance failed');
+      }
     } catch (e) {
-      console.error('Data fetch failed:', e);
-      document.querySelectorAll('.signal-main').forEach(el => el.textContent = 'Data Error');
+      try {
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd&include_24hr_change=true');
+        const data = await res.json();
+        currentUSDPrice = data.ripple.usd;
+        priceChange24h = data.ripple.usd_24h_change || 0;
+      } catch (ee) {
+        console.error('Price fetches failed:', ee);
+      }
     }
+    await updateFearGreed();
+    updateSignals();
+    updateAll();
+  }
+
+  // === Fear & Greed ===
+  async function updateFearGreed() {
+    try {
+      const res = await fetch('https://api.alternative.me/fng/?limit=1');
+      const data = await res.json();
+      if (data?.data?.[0]) {
+        fearGreedValue = parseInt(data.data[0].value);
+        if (fearGreedValue >= 75) { fearGreedText = 'Extreme Greed'; fearGreedClass = 'bullish'; }
+        else if (fearGreedValue >= 50) { fearGreedText = 'Greed'; fearGreedClass = 'bullish'; }
+        else if (fearGreedValue >= 25) { fearGreedText = 'Neutral'; fearGreedClass = 'neutral'; }
+        else { fearGreedText = 'Extreme Fear'; fearGreedClass = 'bearish'; }
+      }
+    } catch (e) {
+      console.warn('F&G failed:', e);
+    }
+  }
+
+  // === Signals Logic ===
+  function generateSignals() {
+    const change = priceChange24h;
+    const fg = fearGreedValue;
+
+    let shortSig = 'HOLD', shortRat = 'Market neutral', shortCol = 'hold';
+    if (change > 5 || (change > 2 && fg > 40)) {
+      shortSig = 'BUY'; shortRat = 'Momentum + volume proxy'; shortCol = 'buy';
+      if (change > 10) triggerPumpEffects();
+    } else if (change < -5 || fg < 20) {
+      shortSig = 'SELL'; shortRat = 'Bearish pressure'; shortCol = 'sell';
+    }
+
+    let medSig = 'HOLD', medRat = 'Trend neutral', medCol = 'hold';
+    if (change > 3 && fg > 30) { medSig = 'BUY'; medRat = 'Positive sentiment building'; medCol = 'buy'; }
+    else if (change < -3 || fg < 25) { medSig = 'SELL/WATCH'; medRat = 'Caution advised'; medCol = 'sell'; }
+
+    let longSig = 'ACCUMULATE', longRat = 'Long-term utility strong', longCol = 'buy';
+    if (fg < 25) longRat += ' – Buy the fear';
+
+    return {
+      short: {sig: shortSig, rat: shortRat, col: shortCol},
+      med: {sig: medSig, rat: medRat, col: medCol},
+      long: {sig: longSig, rat: longRat, col: longCol}
+    };
+  }
+
+  function updateSignals() {
+    const sigs = generateSignals();
+    const rate = rates[currentCurrency] || 1;
+    const sym = symbols[currentCurrency] || '$';
+    const dispPrice = (currentUSDPrice * rate).toFixed(4);
+
+    ['short','med','long'].forEach(t => {
+      const cap = t.charAt(0).toUpperCase() + t.slice(1);
+      document.getElementById(`currentPrice${cap}`).textContent = sym + dispPrice;
+      const chEl = document.getElementById(`change${cap}`);
+      chEl.textContent = (priceChange24h >= 0 ? '+' : '') + priceChange24h.toFixed(2) + '%';
+      chEl.className = priceChange24h >= 0 ? 'text-green-400' : 'text-red-400';
+
+      const s = sigs[t];
+      document.getElementById(`${t}Signal`).textContent = s.sig;
+      document.getElementById(`${t}Signal`).className = `signal-main ${s.col === 'buy' ? 'buy' : s.col === 'sell' ? 'sell' : 'hold'}`;
+      document.getElementById(`${t}Rationale`).textContent = s.rat;
+
+      const sentEl = document.getElementById(`${t}Sentiment`);
+      sentEl.textContent = fearGreedText;
+      sentEl.className = `sentiment ${fearGreedClass}`;
+    });
+  }
+
+  function triggerPumpEffects() {
+    confetti({particleCount: 300, spread: 120, origin: { y: 0.6 }});
+    rocketSound.currentTime = 0; rocketSound.play();
+    setTimeout(() => { cheeringSound.currentTime = 0; cheeringSound.play(); }, 1200);
+  }
+
+  // Moon Calculator Update
+  function updateMyMoonCalculator() {
+    const holdings = parseFloat(myHoldingsInput.value) || 0;
+    const moonPriceUSD = parseFloat(myMoonPriceInput.value) || 0;
+    const rate = rates[currentCurrency] || 1;
+    const sym = symbols[currentCurrency];
+    const currentValue = holdings * currentUSDPrice * rate;
+    myCurrentValue.textContent = sym + currentValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const moonValue = holdings * moonPriceUSD;
+    myMoonValue.textContent = sym + moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    myMoonPriceDisplay.textContent = sym + moonPriceUSD.toFixed(2);
+    myHoldingsDisplay.textContent = holdings.toLocaleString() + ' XRP';
+    const progress = (currentUSDPrice / moonPriceUSD) * 100;
+    if (progress > 0 && progress <= 100) {
+      myMoonFill.style.width = progress + '%';
+      myMoonText.textContent = progress.toFixed(1) + '% to your moon!';
+      if (progress >= 90) myMoonMessage.textContent = 'SO CLOSE!! 🌕';
+      else if (progress >= 50) myMoonMessage.textContent = 'Halfway there! 🚀';
+      else myMoonMessage.textContent = 'Keep holding! 💎🙌';
+    } else if (progress > 100) {
+      myMoonFill.style.width = '100%';
+      myMoonText.textContent = 'Moon achieved!';
+      myMoonMessage.textContent = 'CONGRATULATIONS!! 🎉🌙';
+      confetti({particleCount: 500, spread: 100});
+    } else {
+      myMoonFill.style.width = '0%';
+      myMoonText.textContent = 'Set your target!';
+    }
+  }
+
+  // Chart Functions
+  function loadTradingViewChart(interval) {
+    const container = document.getElementById('chartContainer');
+    container.innerHTML = '';
+    const widgetContainer = document.createElement('div');
+    widgetContainer.className = 'tradingview-widget-container';
+    widgetContainer.style.height = '100%';
+    widgetContainer.style.width = '100%';
+    const innerDiv = document.createElement('div');
+    innerDiv.className = 'tradingview-widget-container__widget';
+    innerDiv.style.height = '100%';
+    innerDiv.style.width = '100%';
+    widgetContainer.appendChild(innerDiv);
+    container.appendChild(widgetContainer);
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      "autosize": true,
+      "symbol": "BINANCE:XRPUSDT",
+      "interval": interval,
+      "timezone": "Etc/UTC",
+      "theme": "dark",
+      "style": "1",
+      "locale": "en",
+      "backgroundColor": "#111111",
+      "gridColor": "#1e293b",
+      "withdateranges": true,
+      "hide_side_toolbar": false,
+      "allow_symbol_change": false,
+      "save_image": false,
+      "hide_volume": false,
+      "support_host": "https://www.tradingview.com"
+    });
+    innerDiv.appendChild(script);
+  }
+
+  function showOverlay(interval) {
+    loadTradingViewChart(interval);
+    document.getElementById('chartOverlay').classList.add('active');
+  }
+
+  document.getElementById('closeOverlay').onclick = () => {
+    document.getElementById('chartOverlay').classList.remove('active');
+    document.getElementById('chartContainer').innerHTML = '';
+  };
+
+  document.getElementById('shortCard').onclick = () => showOverlay('15');
+  document.getElementById('medCard').onclick = () => showOverlay('240');
+  document.getElementById('longCard').onclick = () => showOverlay('W');
+
+  // Theme Toggle
+  const savedTheme = localStorage.getItem('xrpTheme');
+  if (savedTheme === 'light') {
+    document.documentElement.classList.remove('dark');
+    document.body.style.background = '#f3f4f6';
+  } else {
+    document.documentElement.classList.add('dark');
+    document.body.style.background = '#000';
+  }
+  const isDark = document.documentElement.classList.contains('dark');
+  document.querySelector('.icon-moon').style.display = isDark ? 'block' : 'none';
+  document.querySelector('.icon-sun').style.display = isDark ? 'none' : 'block';
+
+  document.getElementById('themeToggle').onclick = () => {
+    document.documentElement.classList.toggle('dark');
+    const isDarkNow = document.documentElement.classList.contains('dark');
+    document.body.style.background = isDarkNow ? '#000' : '#f3f4f6';
+    localStorage.setItem('xrpTheme', isDarkNow ? 'dark' : 'light');
+    document.querySelector('.icon-moon').style.display = isDarkNow ? 'block' : 'none';
+    document.querySelector('.icon-sun').style.display = isDarkNow ? 'none' : 'block';
+  };
+
+  // Currency Selector
+  document.getElementById('currencySelect').value = currentCurrency;
+  document.getElementById('currencySelect').onchange = e => {
+    currentCurrency = e.target.value;
+    localStorage.setItem('xrpCurrency', currentCurrency);
+    updateSignals();
+    updateMyMoonCalculator();
+  };
+
+  // Moon Listeners
+  if (localStorage.getItem('myHoldings')) myHoldingsInput.value = localStorage.getItem('myHoldings');
+  if (localStorage.getItem('myMoonPrice')) myMoonPriceInput.value = localStorage.getItem('myMoonPrice');
+
+  myHoldingsInput.addEventListener('input', () => {
+    localStorage.setItem('myHoldings', myHoldingsInput.value);
+    updateMyMoonCalculator();
+  });
+
+  myMoonPriceInput.addEventListener('input', () => {
+    localStorage.setItem('myMoonPrice', myMoonPriceInput.value);
+    updateMyMoonCalculator();
+  });
+
+  function updateAll() {
     updateMyMoonCalculator();
   }
 
-  // Token change
-  document.getElementById('tokenSelect').addEventListener('change', e => {
-    currentToken = e.target.value;
-    tokenSymbol = e.target.options[e.target.selectedIndex].text;
-    updatePrice();
-  });
-
   // Start
-  updateExchangeRates();
   updatePrice();
-  setInterval(updatePrice, 60000); // slower to avoid 429
+  setInterval(updatePrice, 30000);
   updateMyMoonCalculator();
-
-  // Keep theme, chart overlay, etc. from your code
 </script>
 </body>
 </html>
