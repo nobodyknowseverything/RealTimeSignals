@@ -36,9 +36,6 @@
     .extreme-bullish{background:#10b981;color:white}
     .bearish{background:#dc2626;color:white}
     .neutral{background:#d97706;color:white}
-    .pump-detected{background:#ff6600 !important;color:white !important;animation:pulse 1s infinite}
-    .moonshot-mode{background:#ff0066 !important;color:white !important;box-shadow:0 0 20px #ff006680;animation:pulse 0.8s infinite}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
     .rocket{position:absolute;bottom:-80px;font-size:4.5rem;opacity:0;transition:opacity .3s, bottom 2.2s ease-in, left 2.2s ease-in;pointer-events:none;z-index:20}
     .rocket.active{opacity:1;bottom:120%}
     .rocket.moonshot{font-size:8rem !important;animation:shake 0.5s infinite}
@@ -153,7 +150,7 @@
         <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: XRP utility + adoption outlook.</p>
       </div>
     </div>
-    <!-- Moon Calculator (unchanged from your working version) -->
+    <!-- Moon Calculator -->
     <div class="md:col-span-3 moon-calculator mt-8">
       <h3>🌕 My XRP Moon Calculator 🌕</h3>
       <div class="input-group">
@@ -213,6 +210,10 @@
 
   let currentUSDPrice = 2.02;
   let priceChange24h = 0;
+  let fearGreedValue = 50; // safe default
+  let fearGreedText = 'Neutral';
+  let fearGreedClass = 'neutral';
+
   let rates = { USD:1, AUD:1.46, EUR:0.95, GBP:0.79, JPY:155, CAD:1.39, CHF:0.88, KRW:1460 };
   const symbols = { USD:'$', AUD:'A$', EUR:'€', GBP:'£', JPY:'¥', CAD:'C$', CHF:'Fr', KRW:'₩' };
   let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
@@ -271,11 +272,11 @@
       if (signalEl && ratEl && sentEl) {
         const sigs = generateSignals();
         const s = sigs[term];
-        signalEl.textContent = s.sig;
-        signalEl.className = `signal-main ${s.col}`;
-        ratEl.textContent = s.rat;
-        sentEl.textContent = fearGreedText;
-        sentEl.className = `pred-sentiment ${fearGreedClass}`;
+        signalEl.textContent = s.sig || 'HOLD';
+        signalEl.className = `signal-main ${s.col || 'hold'}`;
+        ratEl.textContent = s.rat || 'Analyzing...';
+        sentEl.textContent = fearGreedText || 'Neutral';
+        sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
       }
     });
 
@@ -321,11 +322,12 @@
         else { fearGreedText = 'Extreme Fear'; fearGreedClass = 'bearish'; }
       }
     } catch (e) {}
+    updateAll();
   }
 
   function generateSignals() {
     const change = priceChange24h;
-    const fg = fearGreedValue;
+    const fg = fearGreedValue || 50; // safe default
     let shortSig = 'HOLD', shortRat = 'Market neutral', shortCol = 'hold';
     if (change > 5 || (change > 2 && fg > 40)) {
       shortSig = 'BUY'; shortRat = 'Momentum + volume proxy'; shortCol = 'buy';
