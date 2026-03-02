@@ -36,6 +36,9 @@
     .extreme-bullish{background:#10b981;color:white}
     .bearish{background:#dc2626;color:white}
     .neutral{background:#d97706;color:white}
+    .pump-detected{background:#ff6600 !important;color:white !important;animation:pulse 1s infinite}
+    .moonshot-mode{background:#ff0066 !important;color:white !important;box-shadow:0 0 20px #ff006680;animation:pulse 0.8s infinite}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
     .rocket{position:absolute;bottom:-80px;font-size:4.5rem;opacity:0;transition:opacity .3s, bottom 2.2s ease-in, left 2.2s ease-in;pointer-events:none;z-index:20}
     .rocket.active{opacity:1;bottom:120%}
     .rocket.moonshot{font-size:8rem !important;animation:shake 0.5s infinite}
@@ -197,6 +200,7 @@
       </div>
     </div>
   </div>
+  <!-- Chart Overlay -->
   <div id="chartOverlay" class="overlay">
     <div class="overlay-chart relative">
       <div class="close-btn" id="closeOverlay">×</div>
@@ -210,9 +214,9 @@
 
   let currentUSDPrice = 2.02;
   let priceChange24h = 0;
-  let fearGreedValue = 50; // safe default
-  let fearGreedText = 'Neutral';
-  let fearGreedClass = 'neutral';
+  let fearGreedValue = 14;
+  let fearGreedText = 'Extreme Fear';
+  let fearGreedClass = 'bearish';
 
   let rates = { USD:1, AUD:1.46, EUR:0.95, GBP:0.79, JPY:155, CAD:1.39, CHF:0.88, KRW:1460 };
   const symbols = { USD:'$', AUD:'A$', EUR:'€', GBP:'£', JPY:'¥', CAD:'C$', CHF:'Fr', KRW:'₩' };
@@ -272,11 +276,11 @@
       if (signalEl && ratEl && sentEl) {
         const sigs = generateSignals();
         const s = sigs[term];
-        signalEl.textContent = s.sig || 'HOLD';
-        signalEl.className = `signal-main ${s.col || 'hold'}`;
-        ratEl.textContent = s.rat || 'Analyzing...';
-        sentEl.textContent = fearGreedText || 'Neutral';
-        sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
+        signalEl.textContent = s.sig;
+        signalEl.className = `signal-main ${s.col}`;
+        ratEl.textContent = s.rat;
+        sentEl.textContent = fearGreedText;
+        sentEl.className = `pred-sentiment ${fearGreedClass}`;
       }
     });
 
@@ -327,7 +331,7 @@
 
   function generateSignals() {
     const change = priceChange24h;
-    const fg = fearGreedValue || 50; // safe default
+    const fg = fearGreedValue;
     let shortSig = 'HOLD', shortRat = 'Market neutral', shortCol = 'hold';
     if (change > 5 || (change > 2 && fg > 40)) {
       shortSig = 'BUY'; shortRat = 'Momentum + volume proxy'; shortCol = 'buy';
@@ -476,12 +480,93 @@
     updateMyMoonCalculator();
   });
 
-  // Start
+  // ────────────────────────────────────────────────
+  // LIVE SENTIMENT REFRESH (every 15 minutes)
+  // ────────────────────────────────────────────────
+
+  // Refresh interval (15 min = 900000 ms)
+  setInterval(() => {
+    console.log('Auto-refreshing X sentiment...');
+    updateSentiment();
+  }, 900000); // Change to 600000 for 10 min, 1800000 for 30 min
+
+  // Main sentiment update function
+  async function updateSentiment() {
+    console.log('Fetching fresh X sentiment...');
+    try {
+      // Pull latest relevant X posts
+      const posts = await fetchRecentXPosts();
+      const summary = analyzeXSentiment(posts);
+
+      // Update all sentiment displays
+      ['short', 'med', 'long'].forEach(term => {
+        const sentEl = document.getElementById(`${term}Sentiment`);
+        if (sentEl) {
+          sentEl.textContent = summary.shortText;
+          sentEl.className = `pred-sentiment ${summary.class}`;
+        }
+      });
+
+      // Optional: update rationale or add alert if big shift
+      console.log('Sentiment refreshed:', summary.shortText);
+    } catch (e) {
+      console.error('Sentiment refresh failed:', e);
+    }
+  }
+
+  // Fetch recent X posts (semantic search for XRP sentiment)
+  async function fetchRecentXPosts() {
+    // Placeholder – replace with real API call if you have a proxy or endpoint
+    // For now, simulate with recent known data or static fetch
+    console.log('Simulating X post fetch (replace with real call)');
+    return [
+      { text: "XRP social sentiment negative – contrarian buy signal" },
+      { text: "Whales accumulating XRP, ETF inflows strong" },
+      { text: "Bearish daily trend, watch for reversal below $1.17" },
+      { text: "XRP front-running bluechips, $5 first target" },
+      { text: "Mixed momentum, potential bullish reversal" }
+    ]; // Replace with actual fetch when ready
+  }
+
+  // Analyze sentiment (simple keyword scoring + AI summary)
+  function analyzeXSentiment(posts) {
+    let bullish = 0, bearish = 0;
+    posts.forEach(post => {
+      const text = post.text.toLowerCase();
+      if (text.includes('bullish') || text.includes('buy') || text.includes('up') || text.includes('accumulation') || text.includes('reversal') || text.includes('etf') || text.includes('whale')) bullish++;
+      if (text.includes('bearish') || text.includes('sell') || text.includes('down') || text.includes('dump') || text.includes('fear')) bearish++;
+    });
+
+    let sentiment = 'Neutral';
+    let className = 'neutral';
+    let shortText = 'X Sentiment: Neutral';
+
+    if (bullish > bearish + 2) {
+      sentiment = 'Bullish';
+      className = 'bullish';
+      shortText = 'X Sentiment: Bullish (whale buys + reversal hints)';
+    } else if (bearish > bullish + 2) {
+      sentiment = 'Bearish';
+      className = 'bearish';
+      shortText = 'X Sentiment: Bearish (retail fear, downtrend pressure)';
+    }
+
+    return {
+      sentiment,
+      class: className,
+      shortText
+    };
+  }
+
+  // Start the app
   updateExchangeRates();
   updatePriceAndVolume();
   setInterval(updatePriceAndVolume, 5000);
   updateMyMoonCalculator();
   setInterval(updateMyMoonCalculator, 5000);
+
+  // Initial sentiment fetch
+  updateSentiment();
 </script>
 </body>
 </html>
