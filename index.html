@@ -36,9 +36,6 @@
     .extreme-bullish{background:#10b981;color:white}
     .bearish{background:#dc2626;color:white}
     .neutral{background:#d97706;color:white}
-    .pump-detected{background:#ff6600 !important;color:white !important;animation:pulse 1s infinite}
-    .moonshot-mode{background:#ff0066 !important;color:white !important;box-shadow:0 0 20px #ff006680;animation:pulse 0.8s infinite}
-    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
     .rocket{position:absolute;bottom:-80px;font-size:4.5rem;opacity:0;transition:opacity .3s, bottom 2.2s ease-in, left 2.2s ease-in;pointer-events:none;z-index:20}
     .rocket.active{opacity:1;bottom:120%}
     .rocket.moonshot{font-size:8rem !important;animation:shake 0.5s infinite}
@@ -200,7 +197,6 @@
       </div>
     </div>
   </div>
-  <!-- Chart Overlay -->
   <div id="chartOverlay" class="overlay">
     <div class="overlay-chart relative">
       <div class="close-btn" id="closeOverlay">×</div>
@@ -214,9 +210,9 @@
 
   let currentUSDPrice = 2.02;
   let priceChange24h = 0;
-  let fearGreedValue = 14;
-  let fearGreedText = 'Extreme Fear';
-  let fearGreedClass = 'bearish';
+  let fearGreedValue = 50; // safe default
+  let fearGreedText = 'Neutral';
+  let fearGreedClass = 'neutral';
 
   let rates = { USD:1, AUD:1.46, EUR:0.95, GBP:0.79, JPY:155, CAD:1.39, CHF:0.88, KRW:1460 };
   const symbols = { USD:'$', AUD:'A$', EUR:'€', GBP:'£', JPY:'¥', CAD:'C$', CHF:'Fr', KRW:'₩' };
@@ -235,9 +231,6 @@
   const myHoldingsDisplay = document.getElementById('myHoldingsDisplay');
   const myMoonPriceDisplay = document.getElementById('myMoonPriceDisplay');
   const myMoonValue = document.getElementById('myMoonValue');
-
-  // Global to hold latest X sentiment
-  let xSentiment = { shortText: 'X Sentiment: Loading...', class: 'neutral' };
 
   async function updateExchangeRates() {
     try {
@@ -279,11 +272,11 @@
       if (signalEl && ratEl && sentEl) {
         const sigs = generateSignals();
         const s = sigs[term];
-        signalEl.textContent = s.sig;
-        signalEl.className = `signal-main ${s.col}`;
-        ratEl.textContent = s.rat;
-        sentEl.textContent = xSentiment.shortText;
-        sentEl.className = `pred-sentiment ${xSentiment.class}`;
+        signalEl.textContent = s.sig || 'HOLD';
+        signalEl.className = `signal-main ${s.col || 'hold'}`;
+        ratEl.textContent = s.rat || 'Analyzing...';
+        sentEl.textContent = fearGreedText || 'Neutral';
+        sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
       }
     });
 
@@ -334,22 +327,19 @@
 
   function generateSignals() {
     const change = priceChange24h;
-    const fg = fearGreedValue;
-    const xSent = xSentiment.sentiment || 'Neutral';
-
+    const fg = fearGreedValue || 50; // safe default
     let shortSig = 'HOLD', shortRat = 'Market neutral', shortCol = 'hold';
-    if (change > 5 || (change > 2 && fg > 40) || xSent === 'Bullish') {
-      shortSig = 'BUY'; shortRat = 'Momentum + X sentiment bullish'; shortCol = 'buy';
+    if (change > 5 || (change > 2 && fg > 40)) {
+      shortSig = 'BUY'; shortRat = 'Momentum + volume proxy'; shortCol = 'buy';
       if (change > 10) triggerPumpEffects();
-    } else if (change < -5 || fg < 20 || xSent === 'Bearish') {
-      shortSig = 'SELL'; shortRat = 'Bearish pressure + X sentiment'; shortCol = 'sell';
+    } else if (change < -5 || fg < 20) {
+      shortSig = 'SELL'; shortRat = 'Bearish pressure'; shortCol = 'sell';
     }
     let medSig = 'HOLD', medRat = 'Trend neutral', medCol = 'hold';
-    if (change > 3 && fg > 30 && xSent !== 'Bearish') { medSig = 'BUY'; medRat = 'Positive trend + X neutral/bullish'; medCol = 'buy'; }
-    else if (change < -3 || fg < 25 || xSent === 'Bearish') { medSig = 'SELL/WATCH'; medRat = 'Caution advised'; medCol = 'sell'; }
+    if (change > 3 && fg > 30) { medSig = 'BUY'; medRat = 'Positive sentiment building'; medCol = 'buy'; }
+    else if (change < -3 || fg < 25) { medSig = 'SELL/WATCH'; medRat = 'Caution advised'; medCol = 'sell'; }
     let longSig = 'ACCUMULATE', longRat = 'Long-term utility strong', longCol = 'buy';
-    if (fg < 25 || xSent === 'Bullish') longRat += ' – Buy the fear / X bullish';
-
+    if (fg < 25) longRat += ' – Buy the fear';
     return {
       short: {sig: shortSig, rat: shortRat, col: shortCol},
       med: {sig: medSig, rat: medRat, col: medCol},
@@ -358,62 +348,42 @@
   }
 
   function updateMyMoonCalculator() {
-    const els = getMoonElements();
-    if (!els.holdingsInput || !els.moonInput) return;
-    const holdings = parseFloat(els.holdingsInput.value) || 0;
-    const moonPriceUSD = parseFloat(els.moonInput.value) || 0;
+    const holdings = parseFloat(myHoldingsInput.value) || 0;
+    const moonPriceUSD = parseFloat(myMoonPriceInput.value) || 0;
     const rate = rates[currentCurrency];
     const sym = symbols[currentCurrency];
     const currentValue = holdings * currentUSDPrice * rate;
-    if (els.currentValue) els.currentValue.textContent = formatFull(currentValue, sym);
+    myCurrentValue.textContent = formatFull(currentValue, sym);
     const moonValue = holdings * moonPriceUSD;
-    if (els.moonValue) els.moonValue.textContent = moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (els.moonPriceDisplay) els.moonPriceDisplay.textContent = formatFull(moonPriceUSD, sym);
-    if (els.holdingsDisplay) els.holdingsDisplay.textContent = holdings.toLocaleString() + ' XRP';
+    myMoonValue.textContent = moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    myMoonPriceDisplay.textContent = formatFull(moonPriceUSD, sym);
+    myHoldingsDisplay.textContent = holdings.toLocaleString() + ' XRP';
     const currentPriceInCurrency = currentUSDPrice * rate;
     if (moonPriceUSD > 0 && currentPriceInCurrency < moonPriceUSD) {
       const progress = (currentPriceInCurrency / moonPriceUSD) * 100;
-      if (els.moonFill) els.moonFill.style.width = progress + '%';
-      if (els.moonText) els.moonText.textContent = progress.toFixed(1) + '% to your moon!';
-      if (els.moonMessage) {
-        if (progress >= 90) els.moonMessage.textContent = 'SO CLOSE!! 🌕 ALMOST THERE 🌕';
-        else if (progress >= 50) els.moonMessage.textContent = 'Halfway to the moon! Keep going! 🚀';
-        else if (progress >= 20) els.moonMessage.textContent = 'On your way! 💪';
-        else els.moonMessage.textContent = 'Diamond hands pay off! 💎🙌';
-      }
+      myMoonFill.style.width = progress + '%';
+      myMoonText.textContent = progress.toFixed(1) + '% to your moon!';
+      if (progress >= 90) myMoonMessage.textContent = 'SO CLOSE!! 🌕 ALMOST THERE 🌕';
+      else if (progress >= 50) myMoonMessage.textContent = 'Halfway to the moon! Keep going! 🚀';
+      else if (progress >= 20) myMoonMessage.textContent = 'On your way! 💪';
+      else myMoonMessage.textContent = 'Diamond hands pay off! 💎🙌';
     } else if (currentPriceInCurrency >= moonPriceUSD) {
-      if (els.moonFill) els.moonFill.style.width = '100%';
-      if (els.moonText) els.moonText.textContent = 'YOU MADE IT TO THE MOON!! 🌕🌕🌕';
-      if (els.moonMessage) els.moonMessage.textContent = 'CONGRATULATIONS!! 🎉🚀🌙';
+      myMoonFill.style.width = '100%';
+      myMoonText.textContent = 'YOU MADE IT TO THE MOON!! 🌕🌕🌕';
+      myMoonMessage.textContent = 'CONGRATULATIONS!! 🎉🚀🌙';
       if (!window.moonAchievedConfetti) {
         confetti({particleCount: 500, spread: 100});
         window.moonAchievedConfetti = true;
       }
     } else {
-      if (els.moonFill) els.moonFill.style.width = '0%';
-      if (els.moonText) els.moonText.textContent = 'Set your moon target!';
-      if (els.moonMessage) els.moonMessage.textContent = 'Dream big! 🌟';
+      myMoonFill.style.width = '0%';
+      myMoonText.textContent = 'Set your moon target!';
+      myMoonMessage.textContent = 'Dream big! 🌟';
     }
   }
 
-  function getMoonElements() {
-    return {
-      holdingsInput: document.getElementById('myHoldings'),
-      moonInput: document.getElementById('myMoonPrice'),
-      currentValue: document.getElementById('myCurrentValue'),
-      moonFill: document.getElementById('myMoonFill'),
-      moonText: document.getElementById('myMoonText'),
-      moonMessage: document.getElementById('myMoonMessage'),
-      holdingsDisplay: document.getElementById('myHoldingsDisplay'),
-      moonPriceDisplay: document.getElementById('myMoonPriceDisplay'),
-      moonValue: document.getElementById('myMoonValue')
-    };
-  }
-
-  // Chart Functions
   function loadTradingViewChart(interval) {
     const container = document.getElementById('chartContainer');
-    if (!container) return;
     container.innerHTML = '';
     const widgetContainer = document.createElement('div');
     widgetContainer.className = 'tradingview-widget-container';
@@ -451,28 +421,17 @@
 
   function showOverlay(interval) {
     loadTradingViewChart(interval);
-    const overlay = document.getElementById('chartOverlay');
-    if (overlay) overlay.classList.add('active');
+    document.getElementById('chartOverlay').classList.add('active');
   }
 
-  const closeOverlay = document.getElementById('closeOverlay');
-  if (closeOverlay) {
-    closeOverlay.onclick = () => {
-      const overlay = document.getElementById('chartOverlay');
-      if (overlay) overlay.classList.remove('active');
-      const container = document.getElementById('chartContainer');
-      if (container) container.innerHTML = '';
-    };
-  }
+  document.getElementById('closeOverlay').onclick = () => {
+    document.getElementById('chartOverlay').classList.remove('active');
+    document.getElementById('chartContainer').innerHTML = '';
+  };
 
-  const shortCard = document.getElementById('shortCard');
-  if (shortCard) shortCard.onclick = () => showOverlay('60');
-
-  const medCard = document.getElementById('medCard');
-  if (medCard) medCard.onclick = () => showOverlay('D');
-
-  const longCard = document.getElementById('longCard');
-  if (longCard) longCard.onclick = () => showOverlay('W');
+  document.getElementById('shortCard').onclick = () => showOverlay('60');
+  document.getElementById('medCard').onclick = () => showOverlay('D');
+  document.getElementById('longCard').onclick = () => showOverlay('W');
 
   // Theme Toggle
   const savedTheme = localStorage.getItem('xrpTheme');
@@ -484,132 +443,45 @@
     document.body.style.background = '#000';
   }
   const isDark = document.documentElement.classList.contains('dark');
-  const moonIcon = document.querySelector('.icon-moon');
-  const sunIcon = document.querySelector('.icon-sun');
-  if (moonIcon) moonIcon.style.display = isDark ? 'block' : 'none';
-  if (sunIcon) sunIcon.style.display = isDark ? 'none' : 'block';
+  document.querySelector('.icon-moon').style.display = isDark ? 'block' : 'none';
+  document.querySelector('.icon-sun').style.display = isDark ? 'none' : 'block';
 
-  const themeToggle = document.getElementById('themeToggle');
-  if (themeToggle) {
-    themeToggle.onclick = () => {
-      document.documentElement.classList.toggle('dark');
-      const isDarkNow = document.documentElement.classList.contains('dark');
-      document.body.style.background = isDarkNow ? '#000' : '#f3f4f6';
-      localStorage.setItem('xrpTheme', isDarkNow ? 'dark' : 'light');
-      if (moonIcon) moonIcon.style.display = isDarkNow ? 'block' : 'none';
-      if (sunIcon) sunIcon.style.display = isDarkNow ? 'none' : 'block';
-    };
-  }
+  document.getElementById('themeToggle').onclick = () => {
+    document.documentElement.classList.toggle('dark');
+    const isDarkNow = document.documentElement.classList.contains('dark');
+    document.body.style.background = isDarkNow ? '#000' : '#f3f4f6';
+    localStorage.setItem('xrpTheme', isDarkNow ? 'dark' : 'light');
+    document.querySelector('.icon-moon').style.display = isDarkNow ? 'block' : 'none';
+    document.querySelector('.icon-sun').style.display = isDarkNow ? 'none' : 'block';
+  };
 
-  // Currency Selector
-  const currencySelect = document.getElementById('currencySelect');
-  if (currencySelect) {
-    currencySelect.value = currentCurrency;
-    currencySelect.onchange = e => {
-      currentCurrency = e.target.value;
-      localStorage.setItem('xrpCurrency', currentCurrency);
-      updateAll();
-    };
-  }
+  document.getElementById('currencySelect').value = currentCurrency;
+  document.getElementById('currencySelect').onchange = e => {
+    currentCurrency = e.target.value;
+    localStorage.setItem('xrpCurrency', currentCurrency);
+    updateAll();
+  };
 
-  // Moon Input Listeners
-  document.addEventListener('DOMContentLoaded', () => {
-    const holdingsInput = document.getElementById('myHoldings');
-    const moonInput = document.getElementById('myMoonPrice');
+  // Moon Listeners
+  if (localStorage.getItem('myHoldings')) myHoldingsInput.value = localStorage.getItem('myHoldings');
+  if (localStorage.getItem('myMoonPrice')) myMoonPriceInput.value = localStorage.getItem('myMoonPrice');
 
-    if (localStorage.getItem('myHoldings') && holdingsInput) holdingsInput.value = localStorage.getItem('myHoldings');
-    if (localStorage.getItem('myMoonPrice') && moonInput) moonInput.value = localStorage.getItem('myMoonPrice');
-
-    if (holdingsInput) {
-      holdingsInput.addEventListener('input', () => {
-        localStorage.setItem('myHoldings', holdingsInput.value);
-        updateMyMoonCalculator();
-      });
-    }
-
-    if (moonInput) {
-      moonInput.addEventListener('input', () => {
-        localStorage.setItem('myMoonPrice', moonInput.value);
-        updateMyMoonCalculator();
-      });
-    }
-
-    // Initial calls
-    updateExchangeRates();
-    updatePriceAndVolume();
-    setInterval(updatePriceAndVolume, 5000);
+  myHoldingsInput.addEventListener('input', () => {
+    localStorage.setItem('myHoldings', myHoldingsInput.value);
     updateMyMoonCalculator();
-    setInterval(updateMyMoonCalculator, 5000);
-
-    // Initial sentiment fetch
-    updateSentiment();
   });
 
-  // ────────────────────────────────────────────────
-  // LIVE SENTIMENT REFRESH (every 15 minutes)
-  // ────────────────────────────────────────────────
+  myMoonPriceInput.addEventListener('input', () => {
+    localStorage.setItem('myMoonPrice', myMoonPriceInput.value);
+    updateMyMoonCalculator();
+  });
 
-  // Refresh interval (15 min = 900000 ms)
-  setInterval(() => {
-    console.log('Auto-refreshing X sentiment...');
-    updateSentiment();
-  }, 900000); // 15 min; change to 600000 for 10 min or 1800000 for 30 min
-
-  // Main sentiment update function
-  async function updateSentiment() {
-    console.log('Fetching fresh X sentiment...');
-    try {
-      const posts = await fetchRecentXPosts();
-      const summary = analyzeXSentiment(posts);
-      xSentiment = summary; // store globally for signals
-      updateAll(); // re-run main update to reflect new sentiment
-      console.log('Sentiment refreshed:', summary.shortText);
-    } catch (e) {
-      console.error('Sentiment refresh failed:', e);
-    }
-  }
-
-  // Fetch recent X posts (placeholder – replace with real call when ready)
-  async function fetchRecentXPosts() {
-    console.log('Simulating X post fetch (replace with real call)');
-    return [
-      { text: "XRP social sentiment negative – contrarian buy signal" },
-      { text: "Whales accumulating XRP, ETF inflows strong" },
-      { text: "Bearish daily trend, watch for reversal below $1.17" },
-      { text: "XRP front-running bluechips, $5 first target" },
-      { text: "Mixed momentum, potential bullish reversal" }
-    ];
-  }
-
-  // Analyze sentiment
-  function analyzeXSentiment(posts) {
-    let bullish = 0, bearish = 0;
-    posts.forEach(post => {
-      const text = post.text.toLowerCase();
-      if (text.includes('bullish') || text.includes('buy') || text.includes('up') || text.includes('accumulation') || text.includes('reversal') || text.includes('etf') || text.includes('whale')) bullish++;
-      if (text.includes('bearish') || text.includes('sell') || text.includes('down') || text.includes('dump') || text.includes('fear')) bearish++;
-    });
-
-    let sentiment = 'Neutral';
-    let className = 'neutral';
-    let shortText = 'X Sentiment: Neutral';
-
-    if (bullish > bearish + 2) {
-      sentiment = 'Bullish';
-      className = 'bullish';
-      shortText = 'X Sentiment: Bullish (whale buys + reversal hints)';
-    } else if (bearish > bullish + 2) {
-      sentiment = 'Bearish';
-      className = 'bearish';
-      shortText = 'X Sentiment: Bearish (retail fear, downtrend pressure)';
-    }
-
-    return {
-      sentiment,
-      class: className,
-      shortText
-    };
-  }
+  // Start
+  updateExchangeRates();
+  updatePriceAndVolume();
+  setInterval(updatePriceAndVolume, 5000);
+  updateMyMoonCalculator();
+  setInterval(updateMyMoonCalculator, 5000);
 </script>
 </body>
 </html>
