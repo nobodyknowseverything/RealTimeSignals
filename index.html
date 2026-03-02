@@ -26,18 +26,19 @@
     .pred-current{display:flex;align-items:center;justify-content:center;gap:12px;font-size:2.2rem;font-weight:bold;color:#fff;margin-bottom:0.5rem}
     .pred-current-price{font-size:2.4rem}
     .pred-current-change{font-size:1.2rem;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,0.5);min-width:80px}
-    .pred-target{font-size:2.8rem;font-weight:bold;color:#00ffff;text-shadow:0 0 10px #00ffff60}
+    .signal-main{font-size:2.8rem;font-weight:bold;margin:1rem 0}
+    .buy {color:#00ff9d;text-shadow:0 0 10px #00ff9d}
+    .sell {color:#ff4d4d;text-shadow:0 0 10px #ff4d4d}
+    .hold {color:#ffd700;text-shadow:0 0 10px #ffd700}
+    .rationale{font-size:1.1rem;color:#a0aec0;margin:1rem 0}
     .pred-sentiment{font-size:1.1rem;margin:1rem 0;padding:0.6rem 1rem;border-radius:999px;display:inline-block;font-weight:bold;transition:all .4s}
     .bullish{background:#059669;color:white}
     .extreme-bullish{background:#10b981;color:white}
+    .bearish{background:#dc2626;color:white}
+    .neutral{background:#d97706;color:white}
     .pump-detected{background:#ff6600 !important;color:white !important;animation:pulse 1s infinite}
     .moonshot-mode{background:#ff0066 !important;color:white !important;box-shadow:0 0 20px #ff006680;animation:pulse 0.8s infinite}
     @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
-    .progress-bar{height:28px;background:#1e293b;border-radius:14px;overflow:hidden;margin:1rem 0;position:relative}
-    .progress-fill{height:100%;background:linear-gradient(90deg,#00ffff,#10b981);transition:width 1.5s ease}
-    .progress-text{position:absolute;top:0;left:0;width:100%;text-align:center;line-height:28px;font-weight:bold;color:#000;text-shadow:0 0 5px #fff;font-size:1.1rem}
-    .days-to-target{font-size:0.95rem;margin-top:0.5rem;color:#a0aec0}
-    .countdown-to-end{font-size:0.95rem;margin-top:0.3rem;color:#a0aec0;font-style:italic}
     .rocket{position:absolute;bottom:-80px;font-size:4.5rem;opacity:0;transition:opacity .3s, bottom 2.2s ease-in, left 2.2s ease-in;pointer-events:none;z-index:20}
     .rocket.active{opacity:1;bottom:120%}
     .rocket.moonshot{font-size:8rem !important;animation:shake 0.5s infinite}
@@ -108,12 +109,11 @@
       <option value="KRW">₩ KRW</option>
     </select>
   </div>
-  <!-- Main Content: Signal Cards -->
+  <!-- Main Content -->
   <div class="max-w-7xl mx-auto px-4 pt-44 pb-12 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-    <!-- Short Term Signal -->
-    <div class="signal-card" id="shortCard">
-      <div class="signal-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term (Hours to Days)</div>
-      <div class="signal-body">
+    <div class="pred-card" id="shortCard">
+      <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term (Hours to Days)</div>
+      <div class="pred-body">
         <div class="rocket left">🚀</div>
         <div class="pred-current">
           <span class="pred-current-price" id="shortCurrent">$ --</span>
@@ -125,10 +125,9 @@
         <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: Momentum, volume proxy, short-term moves.</p>
       </div>
     </div>
-    <!-- Medium Term -->
-    <div class="signal-card" id="medCard">
-      <div class="signal-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term (Weeks to Months)</div>
-      <div class="signal-body">
+    <div class="pred-card" id="medCard">
+      <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term (Weeks to Months)</div>
+      <div class="pred-body">
         <div class="rocket right">🚀</div>
         <div class="pred-current">
           <span class="pred-current-price" id="medCurrent">$ --</span>
@@ -140,10 +139,9 @@
         <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: Trend + sentiment direction.</p>
       </div>
     </div>
-    <!-- Long Term -->
-    <div class="signal-card" id="longCard">
-      <div class="signal-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term (Months to Years)</div>
-      <div class="signal-body">
+    <div class="pred-card" id="longCard">
+      <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term (Months to Years)</div>
+      <div class="pred-body">
         <div class="rocket left">🚀</div>
         <div class="pred-current">
           <span class="pred-current-price" id="longCurrent">$ --</span>
@@ -155,7 +153,7 @@
         <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: XRP utility + adoption outlook.</p>
       </div>
     </div>
-    <!-- Moon Calculator -->
+    <!-- Moon Calculator (unchanged from your working version) -->
     <div class="md:col-span-3 moon-calculator mt-8">
       <h3>🌕 My XRP Moon Calculator 🌕</h3>
       <div class="input-group">
@@ -202,7 +200,6 @@
       </div>
     </div>
   </div>
-  <!-- Chart Overlay -->
   <div id="chartOverlay" class="overlay">
     <div class="overlay-chart relative">
       <div class="close-btn" id="closeOverlay">×</div>
@@ -267,7 +264,6 @@
         changeEl.className = 'pred-current-change ' + (change24hPct > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40');
       }
 
-      // Signals & sentiment (custom addition)
       const signalEl = document.getElementById(`${term}Signal`);
       const ratEl = document.getElementById(`${term}Rationale`);
       const sentEl = document.getElementById(`${term}Sentiment`);
