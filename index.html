@@ -558,8 +558,7 @@
   async function updateSentiment() {
     console.log('Fetching fresh X sentiment...');
     try {
-      const posts = await fetchRecentXPosts();
-      const summary = analyzeXSentiment(posts);
+      const summary = await fetchRecentXPosts();
       xSentiment = summary;
       updateAll();
       console.log('Sentiment refreshed:', summary.shortText);
@@ -568,35 +567,19 @@
     }
   }
 
-  // Fetch real X posts from your serverless API
+  // Fetch real XRP social sentiment from LunarCrush
   async function fetchRecentXPosts() {
-    console.log('Fetching real X posts from /api/sentiment...');
+    console.log('Fetching real XRP social sentiment from LunarCrush...');
     try {
       const res = await fetch('/api/sentiment');
       if (!res.ok) throw new Error('API call failed: ' + res.status);
       const data = await res.json();
-      const posts = data.posts || [];
-      console.log(`Found ${posts.length} real X posts`);
-      if (posts.length > 0) console.log('Sample:', posts.slice(0, 3));
-      return posts.map(text => ({ text }));
+      console.log('LunarCrush data received:', data);
+      return data;
     } catch (e) {
-      console.error('Sentiment API failed:', e);
-      return [];
+      console.error('LunarCrush API failed:', e);
+      return { sentiment: 'Neutral', shortText: 'X Sentiment: Error loading data', class: 'neutral' };
     }
-  }
-
-  // Analyze sentiment from real posts
-  function analyzeXSentiment(posts) {
-    let bullish = 0, bearish = 0;
-    posts.forEach(post => {
-      const text = (post.text || '').toLowerCase();
-      if (text.includes('bullish') || text.includes('buy') || text.includes('whale') || text.includes('etf') || text.includes('moon')) bullish++;
-      if (text.includes('bearish') || text.includes('sell') || text.includes('dump') || text.includes('fear')) bearish++;
-    });
-
-    if (bullish > bearish + 1) return { sentiment: 'Bullish', class: 'bullish', shortText: 'X Sentiment: Bullish (whale buys + reversal hints)' };
-    if (bearish > bullish + 1) return { sentiment: 'Bearish', class: 'bearish', shortText: 'X Sentiment: Bearish (retail fear + downtrend pressure)' };
-    return { sentiment: 'Neutral', class: 'neutral', shortText: 'X Sentiment: Neutral' };
   }
 
   // Start the app
