@@ -2,24 +2,27 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const apiKey = 'yjahzfdryie4d69qvrjsypa0dmmaa5a1hxychrbv'; // Your key
+  const apiKey = 'my3hesnzk4d46q914cqilr3ymma877461sg76ub'; // Your key
   const symbol = 'XRP';
 
   try {
-    console.log('Calling LunarCrush API...');
+    console.log('LunarCrush API called at:', new Date().toISOString());
+    console.log('Key (masked):', apiKey.substring(0, 5) + '...');
     const url = `https://api.lunarcrush.com/v2?data=assets&key=${apiKey}&symbol=${symbol}`;
-    console.log('URL:', url);
+    console.log('Request URL:', url);
+
     const response = await fetch(url);
-    console.log('Status:', response.status);
+    console.log('Response status:', response.status);
+
+    const responseText = await response.text();
+    console.log('Raw LunarCrush response (first 500 chars):', responseText.substring(0, 500));
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('LunarCrush error:', errorText);
-      throw new Error('API failed: ' + response.status);
+      throw new Error('LunarCrush failed: ' + response.status + ' - ' + responseText);
     }
 
-    const data = await response.json();
-    console.log('LunarCrush data:', JSON.stringify(data, null, 2));
+    const data = JSON.parse(responseText);
+    console.log('Parsed LunarCrush data:', JSON.stringify(data, null, 2));
 
     const asset = data.data?.[0] || {};
     const sentiment = asset.sentiment_absolute || 50;
@@ -30,14 +33,16 @@ export default async function handler(req, res) {
     let sentimentLabel = 'Neutral';
 
     if (sentiment > 60 || galaxyScore > 70) {
-      shortText = 'X Sentiment: Bullish';
+      shortText = 'X Sentiment: Bullish (high social volume & positive sentiment)';
       className = 'bullish';
       sentimentLabel = 'Bullish';
     } else if (sentiment < 40 || galaxyScore < 40) {
-      shortText = 'X Sentiment: Bearish';
+      shortText = 'X Sentiment: Bearish (negative sentiment & low volume)';
       className = 'bearish';
       sentimentLabel = 'Bearish';
     }
+
+    console.log(`LunarCrush sentiment for XRP: ${sentiment} (Galaxy: ${galaxyScore})`);
 
     res.status(200).json({
       sentiment: sentimentLabel,
@@ -48,7 +53,7 @@ export default async function handler(req, res) {
     console.error('Sentiment API error:', error.message);
     res.status(200).json({
       sentiment: 'Neutral',
-      shortText: 'X Sentiment: LunarCrush unavailable',
+      shortText: 'X Sentiment: LunarCrush error - key issue or service down',
       class: 'neutral'
     });
   }
