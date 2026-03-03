@@ -2,7 +2,7 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  const apiKey = 'my3hesnzk4d46q914cqilr3ymma877461sg76ub'; // Your key
+  const apiKey = 'yjahzfdryie4d69qvrjsypa0dmmaa5a1hxychrbv'; // Your key
   const symbol = 'XRP';
 
   try {
