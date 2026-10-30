@@ -60,8 +60,6 @@
     .moon-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem}
     .moon-stat{font-size:1rem;color:#ccc}
     .moon-stat-value{font-size:1.3rem;font-weight:bold;color:#00ffff;margin-top:0.3rem}
-    .toast{position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;border:1px solid #00ffff;box-shadow:0 0 20px #00ffff40;z-index:100;opacity:0;transform:translateY(20px);transition:all .4s;pointer-events:none}
-    .toast.show{opacity:1;transform:translateY(0)}
     @media (max-width: 768px) {
       .portfolio-value{font-size:2rem;}
       .moon-stat-value{font-size:1.1rem;}
@@ -113,16 +111,97 @@
       <option value="KRW">₩ KRW</option>
     </select>
   </div>
-
-  <div id="toast" class="toast"></div>
-
   <!-- Main Content -->
   <div class="max-w-7xl mx-auto px-4 pt-44 pb-12 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-    <!-- cards and moon calculator remain exactly the same as your original -->
-    <!-- (I omitted them here only for brevity in this message — paste the full original cards + moon + bottom section back in) -->
-    <!-- ... your original pred-cards, moon calculator, and bottom motivation div go here unchanged ... -->
+    <div class="pred-card" id="shortCard">
+      <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term (Hours to Days)</div>
+      <div class="pred-body">
+        <div class="rocket left">🚀</div>
+        <div class="pred-current">
+          <span class="pred-current-price" id="shortCurrent">$ --</span>
+          <span class="pred-current-change" id="shortChange">+0.00%</span>
+        </div>
+        <div class="signal-main" id="shortSignal">HOLD</div>
+        <div class="rationale" id="shortRationale">Analyzing momentum...</div>
+        <div class="pred-sentiment neutral" id="shortSentiment">Neutral</div>
+        <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: Momentum, volume proxy, short-term moves.</p>
+      </div>
+    </div>
+    <div class="pred-card" id="medCard">
+      <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term (Weeks to Months)</div>
+      <div class="pred-body">
+        <div class="rocket right">🚀</div>
+        <div class="pred-current">
+          <span class="pred-current-price" id="medCurrent">$ --</span>
+          <span class="pred-current-change" id="medChange">+0.00%</span>
+        </div>
+        <div class="signal-main" id="medSignal">HOLD</div>
+        <div class="rationale" id="medRationale">Analyzing trend...</div>
+        <div class="pred-sentiment neutral" id="medSentiment">Neutral</div>
+        <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: Trend + sentiment direction.</p>
+      </div>
+    </div>
+    <div class="pred-card" id="longCard">
+      <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term (Months to Years)</div>
+      <div class="pred-body">
+        <div class="rocket left">🚀</div>
+        <div class="pred-current">
+          <span class="pred-current-price" id="longCurrent">$ --</span>
+          <span class="pred-current-change" id="longChange">+0.00%</span>
+        </div>
+        <div class="signal-main" id="longSignal">ACCUMULATE</div>
+        <div class="rationale" id="longRationale">Analyzing macro...</div>
+        <div class="pred-sentiment neutral" id="longSentiment">Neutral</div>
+        <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: XRP utility + adoption outlook.</p>
+      </div>
+    </div>
+    <!-- Moon Calculator -->
+    <div class="md:col-span-3 moon-calculator mt-8">
+      <h3>🌕 My XRP Moon Calculator 🌕</h3>
+      <div class="input-group">
+        <span class="input-label">My Holdings:</span>
+        <input type="number" id="myHoldings" value="1000" min="0" step="1">
+        <span>XRP</span>
+      </div>
+      <div class="input-group">
+        <span class="input-label">My Moon Price:</span>
+        <input type="number" id="myMoonPrice" value="100" min="0.1" step="0.01">
+      </div>
+      <div class="portfolio-value" id="myCurrentValue">$2,020.00</div>
+      <div class="my-moon-progress">
+        <div class="my-moon-bar">
+          <div class="my-moon-fill" id="myMoonFill" style="width:2%"></div>
+          <div class="my-moon-text" id="myMoonText">2% to your moon!</div>
+        </div>
+      </div>
+      <div class="moon-message" id="myMoonMessage">Keep holding strong! 💎🙌</div>
+      <div class="moon-stats">
+        <div class="moon-stat">
+          <div>My Holdings</div>
+          <div class="moon-stat-value" id="myHoldingsDisplay">1,000 XRP</div>
+        </div>
+        <div class="moon-stat">
+          <div>My Moon Price</div>
+          <div class="moon-stat-value" id="myMoonPriceDisplay">$100.00</div>
+        </div>
+        <div class="moon-stat">
+          <div>My Moon Value</div>
+          <div class="moon-stat-value" id="myMoonValue">$100,000.00</div>
+        </div>
+      </div>
+    </div>
+    <!-- Bottom Motivation -->
+    <div class="md:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-8 text-center mt-8">
+      <div class="text-4xl font-bold text-green-400 animate-pulse mb-4">XRP 24/7</div>
+      <div class="text-lg text-green-300 mb-6">CRYPTO NEVER SLEEPS • XRP SIGNALS</div>
+      <div class="text-cyan-400">
+        <p class="text-sm font-semibold mb-2">Total Page Views</p>
+        <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=87fxqfm966l84an29sfgkbmdynkpfut8"
+             alt="Total Page Views" border="0"
+             class="mx-auto h-6" />
+      </div>
+    </div>
   </div>
-
   <div id="chartOverlay" class="overlay">
     <div class="overlay-chart relative">
       <div class="close-btn" id="closeOverlay">×</div>
@@ -147,13 +226,35 @@
   let previousSignals = { short: 'HOLD', med: 'HOLD', long: 'ACCUMULATE' };
   let alertsEnabled = localStorage.getItem('xrpAlerts') === 'true';
 
-  // ... (keep all your original variable declarations for moon calculator) ...
+  let lastRocketSide = {};
+  let currentPumpState = false;
+  let currentMoonshotState = false;
+
+  const myHoldingsInput = document.getElementById('myHoldings');
+  const myMoonPriceInput = document.getElementById('myMoonPrice');
+  const myCurrentValue = document.getElementById('myCurrentValue');
+  const myMoonFill = document.getElementById('myMoonFill');
+  const myMoonText = document.getElementById('myMoonText');
+  const myMoonMessage = document.getElementById('myMoonMessage');
+  const myHoldingsDisplay = document.getElementById('myHoldingsDisplay');
+  const myMoonPriceDisplay = document.getElementById('myMoonPriceDisplay');
+  const myMoonValue = document.getElementById('myMoonValue');
 
   function showToast(message) {
-    const toast = document.getElementById('toast');
+    let toast = document.getElementById('toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;border:1px solid #00ffff;box-shadow:0 0 20px #00ffff40;z-index:100;opacity:0;transform:translateY(20px);transition:all .4s;pointer-events:none;font-size:14px;';
+      document.body.appendChild(toast);
+    }
     toast.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4000);
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(20px)';
+    }, 4000);
   }
 
   function requestAlertPermission() {
@@ -184,9 +285,10 @@
       const oldSig = previousSignals[key];
       const newSig = newSignals[key].sig;
       if (oldSig !== newSig && alertsEnabled && Notification.permission === 'granted') {
-        const title = `XRP ${labels[key]} Signal Changed`;
-        const body = `${oldSig} → ${newSig}`;
-        new Notification(title, { body, icon: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png' });
+        new Notification(`XRP ${labels[key]} Signal Changed`, {
+          body: `${oldSig} → ${newSig}`,
+          icon: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png'
+        });
         showToast(`${labels[key]}: ${oldSig} → ${newSig}`);
       }
       previousSignals[key] = newSig;
@@ -201,146 +303,256 @@
     if (rocketSound) rocketSound.play().catch(() => {});
   }
 
- function updateAll() {
-  const rate = rates[currentCurrency];
-  const sym = symbols[currentCurrency];
-  const displayPrice = (currentUSDPrice * rate).toFixed(4);
-  const change24hPct = priceChange24h;
-
-  const sigs = generateSignals(); // only once
-
-  ['short', 'med', 'long'].forEach(term => {
-    const currentEl = document.getElementById(`${term}Current`);
-    if (currentEl) currentEl.textContent = sym + displayPrice;
-
-    const changeEl = document.getElementById(`${term}Change`);
-    if (changeEl) {
-      changeEl.textContent = (change24hPct > 0 ? '+' : '') + change24hPct.toFixed(2) + '%';
-      changeEl.className = 'pred-current-change ' + (change24hPct > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40');
+  async function updateExchangeRates() {
+    try {
+      const res = await fetch('https://v6.exchangerate-api.com/v6/2e28bae41916290695aca1ce/latest/USD');
+      const data = await res.json();
+      if (data.result === 'success') {
+        rates = { USD: 1, ...data.conversion_rates };
+      }
+    } catch (e) {
+      // fallback
     }
+    updateAll();
+  }
 
-    const signalEl = document.getElementById(`${term}Signal`);
-    const ratEl = document.getElementById(`${term}Rationale`);
-    const sentEl = document.getElementById(`${term}Sentiment`);
+  function formatFull(value, sym) {
+    return sym + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
-    if (signalEl && ratEl && sentEl) {
-      const s = sigs[term];
-      signalEl.textContent = s.sig || 'HOLD';
-      signalEl.className = `signal-main ${s.col || 'hold'}`;
-      ratEl.textContent = s.rat || 'Analyzing...';
-      sentEl.textContent = fearGreedText || 'Neutral';
-      sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
+  function updateAll() {
+    const rate = rates[currentCurrency];
+    const sym = symbols[currentCurrency];
+    const displayPrice = (currentUSDPrice * rate).toFixed(4);
+    const change24hPct = priceChange24h;
+
+    const sigs = generateSignals();
+
+    ['short', 'med', 'long'].forEach(term => {
+      const currentEl = document.getElementById(`${term}Current`);
+      if (currentEl) currentEl.textContent = sym + displayPrice;
+
+      const changeEl = document.getElementById(`${term}Change`);
+      if (changeEl) {
+        changeEl.textContent = (change24hPct > 0 ? '+' : '') + change24hPct.toFixed(2) + '%';
+        changeEl.className = 'pred-current-change ' + (change24hPct > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40');
+      }
+
+      const signalEl = document.getElementById(`${term}Signal`);
+      const ratEl = document.getElementById(`${term}Rationale`);
+      const sentEl = document.getElementById(`${term}Sentiment`);
+
+      if (signalEl && ratEl && sentEl) {
+        const s = sigs[term];
+        signalEl.textContent = s.sig || 'HOLD';
+        signalEl.className = `signal-main ${s.col || 'hold'}`;
+        ratEl.textContent = s.rat || 'Analyzing...';
+        sentEl.textContent = fearGreedText || 'Neutral';
+        sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
+      }
+    });
+
+    checkSignalChanges(sigs);
+    updateMyMoonCalculator();
+    // Force-repaint block removed — this was causing the scroll jump
+  }
+
+  async function updatePriceAndVolume() {
+    try {
+      const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT');
+      if(r.ok){
+        const d = await r.json();
+        currentUSDPrice = parseFloat(d.lastPrice);
+        priceChange24h = parseFloat(d.priceChangePercent);
+      }
+    } catch(e) {
+      try {
+        const r = await fetch('https://api.coingecko.com/api/v3/coins/ripple');
+        const d = await r.json();
+        currentUSDPrice = d.market_data.current_price.usd;
+        priceChange24h = d.market_data.price_change_percentage_24h || 0;
+      } catch(ee) {
+        priceChange24h = 0;
+      }
     }
-  });
-
-  checkSignalChanges(sigs);
-  updateMyMoonCalculator();
-  // Force-repaint block has been removed
-}
-Step 2: Add the alert helpers
-Add these new functions right above the updateAll function:
-
-js
-let previousSignals = { short: 'HOLD', med: 'HOLD', long: 'ACCUMULATE' };
-let alertsEnabled = localStorage.getItem('xrpAlerts') === 'true';
-
-function showToast(message) {
-  let toast = document.getElementById('toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'toast';
-    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;border:1px solid #00ffff;box-shadow:0 0 20px #00ffff40;z-index:100;opacity:0;transform:translateY(20px);transition:all .4s;pointer-events:none;';
-    document.body.appendChild(toast);
+    await updateFearGreed();
+    updateAll();
   }
-  toast.textContent = message;
-  toast.style.opacity = '1';
-  toast.style.transform = 'translateY(0)';
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(20px)';
-  }, 4000);
-}
 
-function requestAlertPermission() {
-  if (!('Notification' in window)) {
-    showToast('Notifications not supported');
-    return;
+  async function updateFearGreed() {
+    try {
+      const res = await fetch('https://api.alternative.me/fng/?limit=1');
+      const data = await res.json();
+      if (data?.data?.[0]) {
+        fearGreedValue = parseInt(data.data[0].value);
+        if (fearGreedValue >= 75) { fearGreedText = 'Extreme Greed'; fearGreedClass = 'extreme-bullish'; }
+        else if (fearGreedValue >= 50) { fearGreedText = 'Greed'; fearGreedClass = 'bullish'; }
+        else if (fearGreedValue >= 25) { fearGreedText = 'Neutral'; fearGreedClass = 'neutral'; }
+        else { fearGreedText = 'Extreme Fear'; fearGreedClass = 'bearish'; }
+      }
+    } catch (e) {}
+    updateAll();
   }
-  if (Notification.permission === 'granted') {
-    alertsEnabled = true;
-    localStorage.setItem('xrpAlerts', 'true');
-    showToast('Signal alerts enabled');
-    return;
+
+  function generateSignals() {
+    const change = priceChange24h;
+    const fg = fearGreedValue || 50;
+    let shortSig = 'HOLD', shortRat = 'Market neutral', shortCol = 'hold';
+    if (change > 5 || (change > 2 && fg > 40)) {
+      shortSig = 'BUY'; shortRat = 'Momentum + volume proxy'; shortCol = 'buy';
+      if (change > 10) triggerPumpEffects();
+    } else if (change < -5 || fg < 20) {
+      shortSig = 'SELL'; shortRat = 'Bearish pressure'; shortCol = 'sell';
+    }
+    let medSig = 'HOLD', medRat = 'Trend neutral', medCol = 'hold';
+    if (change > 3 && fg > 30) { medSig = 'BUY'; medRat = 'Positive sentiment building'; medCol = 'buy'; }
+    else if (change < -3 || fg < 25) { medSig = 'SELL/WATCH'; medRat = 'Caution advised'; medCol = 'sell'; }
+    let longSig = 'ACCUMULATE', longRat = 'Long-term utility strong', longCol = 'buy';
+    if (fg < 25) longRat += ' – Buy the fear';
+    return {
+      short: {sig: shortSig, rat: shortRat, col: shortCol},
+      med: {sig: medSig, rat: medRat, col: medCol},
+      long: {sig: longSig, rat: longRat, col: longCol}
+    };
   }
-  Notification.requestPermission().then(permission => {
-    if (permission === 'granted') {
-      alertsEnabled = true;
-      localStorage.setItem('xrpAlerts', 'true');
-      showToast('Signal alerts enabled!');
+
+  function updateMyMoonCalculator() {
+    const holdings = parseFloat(myHoldingsInput.value) || 0;
+    const moonPriceUSD = parseFloat(myMoonPriceInput.value) || 0;
+    const rate = rates[currentCurrency];
+    const sym = symbols[currentCurrency];
+    const currentValue = holdings * currentUSDPrice * rate;
+    myCurrentValue.textContent = formatFull(currentValue, sym);
+    const moonValue = holdings * moonPriceUSD;
+    myMoonValue.textContent = moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    myMoonPriceDisplay.textContent = formatFull(moonPriceUSD, sym);
+    myHoldingsDisplay.textContent = holdings.toLocaleString() + ' XRP';
+    const currentPriceInCurrency = currentUSDPrice * rate;
+    if (moonPriceUSD > 0 && currentPriceInCurrency < moonPriceUSD) {
+      const progress = (currentPriceInCurrency / moonPriceUSD) * 100;
+      myMoonFill.style.width = progress + '%';
+      myMoonText.textContent = progress.toFixed(1) + '% to your moon!';
+      if (progress >= 90) myMoonMessage.textContent = 'SO CLOSE!! 🌕 ALMOST THERE 🌕';
+      else if (progress >= 50) myMoonMessage.textContent = 'Halfway to the moon! Keep going! 🚀';
+      else if (progress >= 20) myMoonMessage.textContent = 'On your way! 💪';
+      else myMoonMessage.textContent = 'Diamond hands pay off! 💎🙌';
+    } else if (currentPriceInCurrency >= moonPriceUSD) {
+      myMoonFill.style.width = '100%';
+      myMoonText.textContent = 'YOU MADE IT TO THE MOON!! 🌕🌕🌕';
+      myMoonMessage.textContent = 'CONGRATULATIONS!! 🎉🚀🌙';
+      if (!window.moonAchievedConfetti) {
+        confetti({particleCount: 500, spread: 100});
+        window.moonAchievedConfetti = true;
+      }
     } else {
-      showToast('Permission denied');
+      myMoonFill.style.width = '0%';
+      myMoonText.textContent = 'Set your moon target!';
+      myMoonMessage.textContent = 'Dream big! 🌟';
     }
-  });
-}
+  }
 
-function checkSignalChanges(newSignals) {
-  const labels = { short: 'Short-Term', med: 'Medium-Term', long: 'Long-Term' };
-  Object.keys(newSignals).forEach(key => {
-    const oldSig = previousSignals[key];
-    const newSig = newSignals[key].sig;
-    if (oldSig !== newSig && alertsEnabled && Notification.permission === 'granted') {
-      new Notification(`XRP ${labels[key]} Signal Changed`, {
-        body: `${oldSig} → ${newSig}`,
-        icon: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png'
-      });
-      showToast(`${labels[key]}: ${oldSig} → ${newSig}`);
-    }
-    previousSignals[key] = newSig;
-  });
-}
+  function loadTradingViewChart(interval) {
+    const container = document.getElementById('chartContainer');
+    container.innerHTML = '';
+    const widgetContainer = document.createElement('div');
+    widgetContainer.className = 'tradingview-widget-container';
+    widgetContainer.style.height = '100%';
+    widgetContainer.style.width = '100%';
+    const innerDiv = document.createElement('div');
+    innerDiv.className = 'tradingview-widget-container__widget';
+    innerDiv.style.height = '100%';
+    innerDiv.style.width = '100%';
+    widgetContainer.appendChild(innerDiv);
+    container.appendChild(widgetContainer);
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      "autosize": true,
+      "symbol": "BINANCE:XRPUSDT",
+      "interval": interval,
+      "timezone": "Etc/UTC",
+      "theme": "dark",
+      "style": "1",
+      "locale": "en",
+      "backgroundColor": "#111111",
+      "gridColor": "#1e293b",
+      "withdateranges": true,
+      "hide_side_toolbar": false,
+      "allow_symbol_change": false,
+      "save_image": false,
+      "hide_volume": false,
+      "support_host": "https://www.tradingview.com"
+    });
+    innerDiv.appendChild(script);
+  }
 
-function triggerPumpEffects() {
-  document.querySelectorAll('.rocket').forEach(r => {
-    r.classList.add('active');
-    setTimeout(() => r.classList.remove('active'), 2500);
-  });
-  if (typeof rocketSound !== 'undefined') rocketSound.play().catch(() => {});
-}
-Step 3: Add the alert button
-Find this line in the HTML:
+  function showOverlay(interval) {
+    loadTradingViewChart(interval);
+    document.getElementById('chartOverlay').classList.add('active');
+  }
 
-html
-<button id="themeToggle" class="toggle-btn">
-Add this right before it:
+  document.getElementById('closeOverlay').onclick = () => {
+    document.getElementById('chartOverlay').classList.remove('active');
+    document.getElementById('chartContainer').innerHTML = '';
+  };
 
-html
-<button id="alertToggle" class="toggle-btn" title="Enable Signal Alerts">
-  <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-  </svg>
-</button>
-Step 4: Add the button listener
-Near the bottom of the <script>, find where the other button listeners are (themeToggle, currencySelect, etc.) and add this line:
+  document.getElementById('shortCard').onclick = () => showOverlay('60');
+  document.getElementById('medCard').onclick = () => showOverlay('D');
+  document.getElementById('longCard').onclick = () => showOverlay('W');
 
-js
-document.getElementById('alertToggle').onclick = requestAlertPermission;
-Step 5: Redeploy
-Save the HTML file.
-Redeploy it to Vercel (upload the new file or push to your Git repo).
-After it finishes deploying, open the site in an Incognito/Private window (or hard-refresh with Ctrl+Shift+R).
-The page should stop jumping to the top when you scroll, and you’ll have a bell button in the top-right to turn on signal change alerts. Click the bell once and allow notifications when the browser asks.
+  // Theme Toggle
+  const savedTheme = localStorage.getItem('xrpTheme');
+  if (savedTheme === 'light') {
+    document.documentElement.classList.remove('dark');
+    document.body.style.background = '#f3f4f6';
+  } else {
+    document.documentElement.classList.add('dark');
+    document.body.style.background = '#000';
+  }
+  const isDark = document.documentElement.classList.contains('dark');
+  document.querySelector('.icon-moon').style.display = isDark ? 'block' : 'none';
+  document.querySelector('.icon-sun').style.display = isDark ? 'none' : 'block';
 
+  document.getElementById('themeToggle').onclick = () => {
+    document.documentElement.classList.toggle('dark');
+    const isDarkNow = document.documentElement.classList.contains('dark');
+    document.body.style.background = isDarkNow ? '#000' : '#f3f4f6';
+    localStorage.setItem('xrpTheme', isDarkNow ? 'dark' : 'light');
+    document.querySelector('.icon-moon').style.display = isDarkNow ? 'block' : 'none';
+    document.querySelector('.icon-sun').style.display = isDarkNow ? 'none' : 'block';
+  };
 
-
-  // Keep all your other functions (updateExchangeRates, updatePriceAndVolume, updateFearGreed,
-  // generateSignals, updateMyMoonCalculator, loadTradingViewChart, showOverlay, etc.) exactly as they were.
-  // Only the updateAll() function above was modified (plus the new helper functions).
-
-  // Alert button
   document.getElementById('alertToggle').onclick = requestAlertPermission;
 
-  // Rest of your event listeners, theme toggle, currency select, moon listeners, and startup calls stay the same.
-  // Just make sure the force-repaint block is gone.
+  document.getElementById('currencySelect').value = currentCurrency;
+  document.getElementById('currencySelect').onchange = e => {
+    currentCurrency = e.target.value;
+    localStorage.setItem('xrpCurrency', currentCurrency);
+    updateAll();
+  };
+
+  // Moon Listeners
+  if (localStorage.getItem('myHoldings')) myHoldingsInput.value = localStorage.getItem('myHoldings');
+  if (localStorage.getItem('myMoonPrice')) myMoonPriceInput.value = localStorage.getItem('myMoonPrice');
+
+  myHoldingsInput.addEventListener('input', () => {
+    localStorage.setItem('myHoldings', myHoldingsInput.value);
+    updateMyMoonCalculator();
+  });
+
+  myMoonPriceInput.addEventListener('input', () => {
+    localStorage.setItem('myMoonPrice', myMoonPriceInput.value);
+    updateMyMoonCalculator();
+  });
+
+  // Start
+  updateExchangeRates();
+  updatePriceAndVolume();
+  setInterval(updatePriceAndVolume, 5000);
+  updateMyMoonCalculator();
+  setInterval(updateMyMoonCalculator, 5000);
 </script>
 </body>
 </html>
