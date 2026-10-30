@@ -201,42 +201,136 @@
     if (rocketSound) rocketSound.play().catch(() => {});
   }
 
-  function updateAll() {
-    const rate = rates[currentCurrency];
-    const sym = symbols[currentCurrency];
-    const displayPrice = (currentUSDPrice * rate).toFixed(4);
-    const change24hPct = priceChange24h;
+ function updateAll() {
+  const rate = rates[currentCurrency];
+  const sym = symbols[currentCurrency];
+  const displayPrice = (currentUSDPrice * rate).toFixed(4);
+  const change24hPct = priceChange24h;
 
-    const sigs = generateSignals(); // only once
+  const sigs = generateSignals(); // only once
 
-    ['short', 'med', 'long'].forEach(term => {
-      const currentEl = document.getElementById(`${term}Current`);
-      if (currentEl) currentEl.textContent = sym + displayPrice;
+  ['short', 'med', 'long'].forEach(term => {
+    const currentEl = document.getElementById(`${term}Current`);
+    if (currentEl) currentEl.textContent = sym + displayPrice;
 
-      const changeEl = document.getElementById(`${term}Change`);
-      if (changeEl) {
-        changeEl.textContent = (change24hPct > 0 ? '+' : '') + change24hPct.toFixed(2) + '%';
-        changeEl.className = 'pred-current-change ' + (change24hPct > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40');
-      }
+    const changeEl = document.getElementById(`${term}Change`);
+    if (changeEl) {
+      changeEl.textContent = (change24hPct > 0 ? '+' : '') + change24hPct.toFixed(2) + '%';
+      changeEl.className = 'pred-current-change ' + (change24hPct > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40');
+    }
 
-      const signalEl = document.getElementById(`${term}Signal`);
-      const ratEl = document.getElementById(`${term}Rationale`);
-      const sentEl = document.getElementById(`${term}Sentiment`);
+    const signalEl = document.getElementById(`${term}Signal`);
+    const ratEl = document.getElementById(`${term}Rationale`);
+    const sentEl = document.getElementById(`${term}Sentiment`);
 
-      if (signalEl && ratEl && sentEl) {
-        const s = sigs[term];
-        signalEl.textContent = s.sig || 'HOLD';
-        signalEl.className = `signal-main ${s.col || 'hold'}`;
-        ratEl.textContent = s.rat || 'Analyzing...';
-        sentEl.textContent = fearGreedText || 'Neutral';
-        sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
-      }
-    });
+    if (signalEl && ratEl && sentEl) {
+      const s = sigs[term];
+      signalEl.textContent = s.sig || 'HOLD';
+      signalEl.className = `signal-main ${s.col || 'hold'}`;
+      ratEl.textContent = s.rat || 'Analyzing...';
+      sentEl.textContent = fearGreedText || 'Neutral';
+      sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
+    }
+  });
 
-    checkSignalChanges(sigs);
-    updateMyMoonCalculator();
-    // Force-repaint block REMOVED — this was causing the scroll jump
+  checkSignalChanges(sigs);
+  updateMyMoonCalculator();
+  // Force-repaint block has been removed
+}
+Step 2: Add the alert helpers
+Add these new functions right above the updateAll function:
+
+js
+let previousSignals = { short: 'HOLD', med: 'HOLD', long: 'ACCUMULATE' };
+let alertsEnabled = localStorage.getItem('xrpAlerts') === 'true';
+
+function showToast(message) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;border:1px solid #00ffff;box-shadow:0 0 20px #00ffff40;z-index:100;opacity:0;transform:translateY(20px);transition:all .4s;pointer-events:none;';
+    document.body.appendChild(toast);
   }
+  toast.textContent = message;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0)';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+  }, 4000);
+}
+
+function requestAlertPermission() {
+  if (!('Notification' in window)) {
+    showToast('Notifications not supported');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    alertsEnabled = true;
+    localStorage.setItem('xrpAlerts', 'true');
+    showToast('Signal alerts enabled');
+    return;
+  }
+  Notification.requestPermission().then(permission => {
+    if (permission === 'granted') {
+      alertsEnabled = true;
+      localStorage.setItem('xrpAlerts', 'true');
+      showToast('Signal alerts enabled!');
+    } else {
+      showToast('Permission denied');
+    }
+  });
+}
+
+function checkSignalChanges(newSignals) {
+  const labels = { short: 'Short-Term', med: 'Medium-Term', long: 'Long-Term' };
+  Object.keys(newSignals).forEach(key => {
+    const oldSig = previousSignals[key];
+    const newSig = newSignals[key].sig;
+    if (oldSig !== newSig && alertsEnabled && Notification.permission === 'granted') {
+      new Notification(`XRP ${labels[key]} Signal Changed`, {
+        body: `${oldSig} → ${newSig}`,
+        icon: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png'
+      });
+      showToast(`${labels[key]}: ${oldSig} → ${newSig}`);
+    }
+    previousSignals[key] = newSig;
+  });
+}
+
+function triggerPumpEffects() {
+  document.querySelectorAll('.rocket').forEach(r => {
+    r.classList.add('active');
+    setTimeout(() => r.classList.remove('active'), 2500);
+  });
+  if (typeof rocketSound !== 'undefined') rocketSound.play().catch(() => {});
+}
+Step 3: Add the alert button
+Find this line in the HTML:
+
+html
+<button id="themeToggle" class="toggle-btn">
+Add this right before it:
+
+html
+<button id="alertToggle" class="toggle-btn" title="Enable Signal Alerts">
+  <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+  </svg>
+</button>
+Step 4: Add the button listener
+Near the bottom of the <script>, find where the other button listeners are (themeToggle, currencySelect, etc.) and add this line:
+
+js
+document.getElementById('alertToggle').onclick = requestAlertPermission;
+Step 5: Redeploy
+Save the HTML file.
+Redeploy it to Vercel (upload the new file or push to your Git repo).
+After it finishes deploying, open the site in an Incognito/Private window (or hard-refresh with Ctrl+Shift+R).
+The page should stop jumping to the top when you scroll, and you’ll have a bell button in the top-right to turn on signal change alerts. Click the bell once and allow notifications when the browser asks.
+
+
 
   // Keep all your other functions (updateExchangeRates, updatePriceAndVolume, updateFearGreed,
   // generateSignals, updateMyMoonCalculator, loadTradingViewChart, showOverlay, etc.) exactly as they were.
