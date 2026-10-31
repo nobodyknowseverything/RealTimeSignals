@@ -125,24 +125,54 @@
     </div>
 
     <!-- Moon Calculator -->
-  <div class="flex flex-wrap gap-8 justify-center items-start mb-6">
-  <div class="text-center">
-    <label class="block text-sm text-gray-400 mb-1">My Holdings</label>
-    <div class="flex items-center gap-2">
-      <input type="number" id="myHoldings" value="1000" min="0" step="1"
-             class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
-      <span class="text-sm text-gray-400">XRP</span>
+    <div class="md:col-span-3 moon-calculator mt-8">
+      <h3 class="text-xl md:text-2xl font-bold text-cyan-400 mb-4">🌕 My XRP Moon Calculator 🌕</h3>
+
+      <div class="flex flex-wrap gap-8 justify-center items-start mb-6">
+        <div class="text-center">
+          <label class="block text-sm text-gray-400 mb-1">My Holdings</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="myHoldings" value="1000" min="0" step="1"
+                   class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
+            <span class="text-sm text-gray-400">XRP</span>
+          </div>
+        </div>
+        <div class="text-center">
+          <label class="block text-sm text-gray-400 mb-1">My Moon Price</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="myMoonPrice" value="100" min="0.01" step="0.01"
+                   class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
+            <span class="text-sm text-gray-400 invisible">XRP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-3xl md:text-4xl font-bold text-cyan-400 mb-2" id="myCurrentValue">$2,020.00</div>
+      <div class="text-sm text-gray-400 mb-4">Current Portfolio Value</div>
+
+      <div class="my-moon-bar h-8 bg-slate-800 rounded-full overflow-hidden relative max-w-lg mx-auto mb-3">
+        <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400 transition-all duration-700" id="myMoonFill" style="width:2%"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-sm md:text-base font-bold text-white" id="myMoonText">2.0% to your moon!</div>
+      </div>
+
+      <div class="text-lg md:text-xl font-semibold text-cyan-300 mb-6" id="myMoonMessage">Diamond hands pay off! 💎🙌</div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
+        <div class="bg-slate-800/50 rounded-xl p-3">
+          <div class="text-xs text-gray-400">My Holdings</div>
+          <div class="text-lg font-bold text-cyan-400" id="myHoldingsDisplay">1,000 XRP</div>
+        </div>
+        <div class="bg-slate-800/50 rounded-xl p-3">
+          <div class="text-xs text-gray-400">My Moon Price</div>
+          <div class="text-lg font-bold text-cyan-400" id="myMoonPriceDisplay">$100.00</div>
+        </div>
+        <div class="bg-slate-800/50 rounded-xl p-3">
+          <div class="text-xs text-gray-400">My Moon Value</div>
+          <div class="text-lg font-bold text-cyan-400" id="myMoonValue">$100,000.00</div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="text-center">
-    <label class="block text-sm text-gray-400 mb-1">My Moon Price</label>
-    <div class="flex items-center gap-2">
-      <input type="number" id="myMoonPrice" value="100" min="0.01" step="0.01"
-             class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
-      <span class="text-sm text-gray-400 invisible">XRP</span> <!-- spacer so heights match -->
-    </div>
-  </div>
-</div>
 
   <div id="chartOverlay" class="overlay">
     <div class="overlay-chart"><div class="close-btn" id="closeOverlay">×</div><div id="chartContainer" style="height:100%;width:100%"></div></div>
