@@ -15,8 +15,6 @@
     html:not(.dark) .icon-moon{display:none} html:not(.dark) .icon-sun{display:block}
     select{font-size:14px;padding:8px 12px;border-radius:8px;background:#1f2937;color:#fff;border:1px solid #374151}
     .live-badge{background:linear-gradient(90deg,#059669,#10b981);color:white;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold}
-    .grok-logo{filter:drop-shadow(0 0 4px #9500ff);animation:glow 2s ease-in-out infinite alternate}
-    @keyframes glow{from{filter:drop-shadow(0 0 2px #9500ff)}to{filter:drop-shadow(0 0 8px #9500ff)}}
     .pred-card{border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;box-shadow:0 10px 20px rgba(0,255,255,0.1);position:relative;cursor:pointer;transition:transform .3s}
     .pred-card:hover{transform:scale(1.02)}
     .pred-header{font-size:1.1rem;font-weight:bold;padding:1rem;text-align:center;color:#fff}
@@ -126,19 +124,41 @@
       <div id="signalHistory" class="space-y-1 max-h-48 overflow-y-auto text-sm"></div>
     </div>
 
-    <!-- Moon Calculator (kept compact) -->
-    <div class="md:col-span-3 moon-calculator mt-6">
-      <h3 class="text-xl font-bold text-cyan-400 mb-3">🌕 My XRP Moon Calculator</h3>
-      <div class="flex flex-wrap gap-4 justify-center items-center mb-3">
-        <div><label class="text-sm text-gray-400">Holdings</label><br><input type="number" id="myHoldings" value="1000" class="bg-slate-800 border border-slate-600 rounded px-3 py-1 w-32 text-center"></div>
-        <div><label class="text-sm text-gray-400">Moon Price</label><br><input type="number" id="myMoonPrice" value="100" step="0.01" class="bg-slate-800 border border-slate-600 rounded px-3 py-1 w-32 text-center"></div>
+    <!-- Moon Calculator -->
+    <div class="md:col-span-3 moon-calculator mt-8">
+      <h3 class="text-xl md:text-2xl font-bold text-cyan-400 mb-4">🌕 My XRP Moon Calculator 🌕</h3>
+      <div class="flex flex-wrap gap-6 justify-center items-end mb-6">
+        <div class="text-center">
+          <label class="block text-sm text-gray-400 mb-1">My Holdings</label>
+          <input type="number" id="myHoldings" value="1000" min="0" step="1" class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-40 text-center text-lg">
+          <div class="text-xs text-gray-500 mt-1">XRP</div>
+        </div>
+        <div class="text-center">
+          <label class="block text-sm text-gray-400 mb-1">My Moon Price</label>
+          <input type="number" id="myMoonPrice" value="100" min="0.01" step="0.01" class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-40 text-center text-lg">
+        </div>
       </div>
-      <div class="text-3xl font-bold text-cyan-400" id="myCurrentValue">$2,020.00</div>
-      <div class="my-moon-bar mt-3 h-6 bg-slate-800 rounded-full overflow-hidden relative max-w-md mx-auto">
-        <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400" id="myMoonFill" style="width:2%"></div>
-        <div class="absolute inset-0 flex items-center justify-center text-sm font-bold" id="myMoonText">2% to moon</div>
+      <div class="text-3xl md:text-4xl font-bold text-cyan-400 mb-2" id="myCurrentValue">$2,020.00</div>
+      <div class="text-sm text-gray-400 mb-4">Current Portfolio Value</div>
+      <div class="my-moon-bar h-8 bg-slate-800 rounded-full overflow-hidden relative max-w-lg mx-auto mb-3">
+        <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400 transition-all duration-700" id="myMoonFill" style="width:2%"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-sm md:text-base font-bold text-white" id="myMoonText">2.0% to your moon!</div>
       </div>
-      <div class="mt-2 text-cyan-300 font-semibold" id="myMoonMessage">Diamond hands 💎🙌</div>
+      <div class="text-lg md:text-xl font-semibold text-cyan-300 mb-6" id="myMoonMessage">Diamond hands pay off! 💎🙌</div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
+        <div class="bg-slate-800/50 rounded-xl p-3">
+          <div class="text-xs text-gray-400">My Holdings</div>
+          <div class="text-lg font-bold text-cyan-400" id="myHoldingsDisplay">1,000 XRP</div>
+        </div>
+        <div class="bg-slate-800/50 rounded-xl p-3">
+          <div class="text-xs text-gray-400">My Moon Price</div>
+          <div class="text-lg font-bold text-cyan-400" id="myMoonPriceDisplay">$100.00</div>
+        </div>
+        <div class="bg-slate-800/50 rounded-xl p-3">
+          <div class="text-xs text-gray-400">My Moon Value</div>
+          <div class="text-lg font-bold text-cyan-400" id="myMoonValue">$100,000.00</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -255,19 +275,16 @@ function generateSignals() {
   const change4h = klines4h.length>1 ? ((klines4h.at(-1)-klines4h.at(-2))/klines4h.at(-2))*100 : 0;
   const change7d = klines1d.length>7 ? ((klines1d.at(-1)-klines1d.at(-8))/klines1d.at(-8))*100 : 0;
 
-  // Short
   let sSig='HOLD', sStr=50, sRat=`RSI(1h) ${rsi1h.toFixed(0)} • 24h ${priceChange24h.toFixed(1)}%`;
   if (rsi1h<30 || (change1h>1.5 && rsi1h<55)) { sSig='BUY'; sStr=Math.min(95,60+ (30-rsi1h)*1.5); sRat='Oversold / momentum bounce'; }
   else if (rsi1h>70 || change1h<-2) { sSig='SELL'; sStr=Math.min(90,55+(rsi1h-70)*1.2); sRat='Overbought / weak momentum'; }
   else if (ma7_1h > ma25_1h) sStr=62;
 
-  // Medium
   let mSig='HOLD', mStr=50, mRat=`RSI(4h) ${rsi4h.toFixed(0)} • 4h ${change4h.toFixed(1)}%`;
   if (rsi4h<35 && ma7_4h>ma25_4h) { mSig='BUY'; mStr=70; mRat='Bullish structure + room to run'; }
   else if (rsi4h>65 || change4h<-3) { mSig='SELL/WATCH'; mStr=65; mRat='Extended / caution'; }
   else if (ma7_4h > ma25_4h) { mStr=58; mRat='Uptrend intact'; }
 
-  // Long
   let lSig='ACCUMULATE', lStr=65, lRat='Long-term utility + adoption';
   if (fearGreedValue<30) { lStr=80; lRat+=' • Buy the fear'; }
   else if (fearGreedValue>75) lStr=45;
@@ -304,7 +321,6 @@ function updateAll() {
       <span class="tf-change">4h ${s.ch4>0?'+':''}${s.ch4.toFixed(1)}%</span>
       <span class="tf-change">24h ${s.ch24>0?'+':''}${s.ch24.toFixed(1)}%</span>
       <span class="tf-change">7d ${s.ch7>0?'+':''}${s.ch7.toFixed(1)}%</span>`;
-    // Levels
     const prices = term==='short'?klines1h:term==='med'?klines4h:klines1d;
     if (prices.length) {
       const hi=Math.max(...prices.slice(-20)), lo=Math.min(...prices.slice(-20));
@@ -318,17 +334,52 @@ function updateAll() {
 }
 
 function updateMoon() {
-  const h=+myHoldingsInput.value||0, mp=+myMoonPriceInput.value||0;
-  const rate=rates[currentCurrency]||1, sym=symbols[currentCurrency]||'$';
-  const cv=h*currentUSDPrice*rate;
-  document.getElementById('myCurrentValue').textContent=sym+cv.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  const prog=mp>0?Math.min(100,(currentUSDPrice*rate/mp)*100):0;
-  document.getElementById('myMoonFill').style.width=prog+'%';
-  document.getElementById('myMoonText').textContent=prog.toFixed(1)+'% to moon';
-  document.getElementById('myMoonMessage').textContent=prog>=100?'YOU MADE IT!! 🌕':prog>50?'Halfway there 🚀':'Diamond hands 💎🙌';
+  const holdings = parseFloat(myHoldingsInput.value) || 0;
+  const moonPrice = parseFloat(myMoonPriceInput.value) || 0;
+  const rate = rates[currentCurrency] || 1;
+  const sym = symbols[currentCurrency] || '$';
+
+  const currentValue = holdings * currentUSDPrice * rate;
+  document.getElementById('myCurrentValue').textContent =
+    sym + currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const moonValue = holdings * moonPrice;
+  document.getElementById('myMoonValue').textContent =
+    sym + moonValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  document.getElementById('myHoldingsDisplay').textContent =
+    holdings.toLocaleString() + ' XRP';
+
+  document.getElementById('myMoonPriceDisplay').textContent =
+    sym + moonPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const currentPriceInCurrency = currentUSDPrice * rate;
+  let progress = 0;
+  if (moonPrice > 0) {
+    progress = Math.min(100, (currentPriceInCurrency / moonPrice) * 100);
+  }
+
+  document.getElementById('myMoonFill').style.width = progress + '%';
+  document.getElementById('myMoonText').textContent = progress.toFixed(1) + '% to your moon!';
+
+  const msg = document.getElementById('myMoonMessage');
+  if (progress >= 100) {
+    msg.textContent = 'YOU MADE IT TO THE MOON!! 🌕🌕🌕';
+    if (!window.moonAchievedConfetti) {
+      confetti({ particleCount: 400, spread: 90 });
+      window.moonAchievedConfetti = true;
+    }
+  } else if (progress >= 90) {
+    msg.textContent = 'SO CLOSE!! 🌕 Almost there!';
+  } else if (progress >= 50) {
+    msg.textContent = 'Halfway to the moon! Keep going! 🚀';
+  } else if (progress >= 20) {
+    msg.textContent = 'On your way! 💪';
+  } else {
+    msg.textContent = 'Diamond hands pay off! 💎🙌';
+  }
 }
 
-// Chart overlay (unchanged logic)
 function loadTradingViewChart(interval) {
   const c=document.getElementById('chartContainer'); c.innerHTML='';
   const w=document.createElement('div'); w.className='tradingview-widget-container'; w.style.height='100%';
@@ -344,7 +395,6 @@ document.getElementById('shortCard').onclick=()=>showOverlay('60');
 document.getElementById('medCard').onclick=()=>showOverlay('240');
 document.getElementById('longCard').onclick=()=>showOverlay('D');
 
-// Theme + currency + alerts
 document.getElementById('alertToggle').onclick=requestAlertPermission;
 document.getElementById('themeToggle').onclick=()=>{
   document.documentElement.classList.toggle('dark');
