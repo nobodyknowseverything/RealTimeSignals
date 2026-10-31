@@ -3,556 +3,365 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XRP Signals Tracker • Created with Grok</title>
+  <title>XRP Signals Tracker • Enhanced</title>
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     body{margin:0;background:#000;font-family:system-ui,sans-serif;overflow-x:hidden;color:#fff}
-    .toggle-btn{background:#1f2937;border:none;padding:10px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:all .3s;position:relative}
+    .toggle-btn{background:#1f2937;border:none;padding:10px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:all .3s}
     .toggle-btn:hover{background:#374151}
-    .icon-moon {display: block;}
-    .icon-sun {display: none;}
-    html:not(.dark) .icon-moon {display: none;}
-    html:not(.dark) .icon-sun {display: block;}
+    .icon-moon{display:block}.icon-sun{display:none}
+    html:not(.dark) .icon-moon{display:none} html:not(.dark) .icon-sun{display:block}
     select{font-size:14px;padding:8px 12px;border-radius:8px;background:#1f2937;color:#fff;border:1px solid #374151}
     .live-badge{background:linear-gradient(90deg,#059669,#10b981);color:white;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold}
     .grok-logo{filter:drop-shadow(0 0 4px #9500ff);animation:glow 2s ease-in-out infinite alternate}
     @keyframes glow{from{filter:drop-shadow(0 0 2px #9500ff)}to{filter:drop-shadow(0 0 8px #9500ff)}}
     .pred-card{border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;box-shadow:0 10px 20px rgba(0,255,255,0.1);position:relative;cursor:pointer;transition:transform .3s}
-    .pred-card:hover{transform:scale(1.03)}
-    .pred-header{font-size:1.2rem;font-weight:bold;padding:1.2rem;text-align:center;color:#fff;position:relative}
-    .pred-body{padding:1.5rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden}
-    .pred-current{display:flex;align-items:center;justify-content:center;gap:12px;font-size:2.2rem;font-weight:bold;color:#fff;margin-bottom:0.5rem}
-    .pred-current-price{font-size:2.4rem}
-    .pred-current-change{font-size:1.2rem;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,0.5);min-width:80px}
-    .signal-main{font-size:2.8rem;font-weight:bold;margin:1rem 0}
-    .buy {color:#00ff9d;text-shadow:0 0 10px #00ff9d}
-    .sell {color:#ff4d4d;text-shadow:0 0 10px #ff4d4d}
-    .hold {color:#ffd700;text-shadow:0 0 10px #ffd700}
-    .rationale{font-size:1.1rem;color:#a0aec0;margin:1rem 0}
-    .pred-sentiment{font-size:1.1rem;margin:1rem 0;padding:0.6rem 1rem;border-radius:999px;display:inline-block;font-weight:bold;transition:all .4s}
-    .bullish{background:#059669;color:white}
-    .extreme-bullish{background:#10b981;color:white}
-    .bearish{background:#dc2626;color:white}
-    .neutral{background:#d97706;color:white}
-    .rocket{position:absolute;bottom:-80px;font-size:4.5rem;opacity:0;transition:opacity .3s, bottom 2.2s ease-in, left 2.2s ease-in;pointer-events:none;z-index:20}
-    .rocket.active{opacity:1;bottom:120%}
-    .rocket.moonshot{font-size:8rem !important;animation:shake 0.5s infinite}
-    @keyframes shake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(5px, -10px) rotate(5deg)}50%{transform:translate(-5px, 5px) rotate(-5deg)}75%{transform:translate(10px, -5px) rotate(5deg)}100%{transform:translate(0,0) rotate(0)}}
-    .rocket.left{left:10%}
-    .rocket.right{left:auto;right:10%}
+    .pred-card:hover{transform:scale(1.02)}
+    .pred-header{font-size:1.1rem;font-weight:bold;padding:1rem;text-align:center;color:#fff}
+    .pred-body{padding:1.2rem 1.2rem 1.8rem;text-align:center;position:relative}
+    .pred-current{display:flex;align-items:center;justify-content:center;gap:10px;font-size:1.8rem;font-weight:bold;margin-bottom:0.4rem}
+    .signal-main{font-size:2.4rem;font-weight:bold;margin:0.6rem 0}
+    .buy{color:#00ff9d;text-shadow:0 0 10px #00ff9d}.sell{color:#ff4d4d;text-shadow:0 0 10px #ff4d4d}.hold{color:#ffd700;text-shadow:0 0 10px #ffd700}
+    .strength-bar{height:8px;background:#1e293b;border-radius:4px;overflow:hidden;margin:6px auto;max-width:180px}
+    .strength-fill{height:100%;transition:width .6s ease}
+    .tf-changes{display:flex;justify-content:center;gap:8px;font-size:0.75rem;margin:6px 0;flex-wrap:wrap}
+    .tf-change{padding:2px 6px;border-radius:6px;background:#1e293b}
+    .sparkline{width:100%;height:48px;margin:8px 0}
+    .levels{font-size:0.75rem;color:#94a3b8;margin-top:6px}
+    .rationale{font-size:0.9rem;color:#a0aec0;margin:0.6rem 0;line-height:1.3}
+    .pred-sentiment{font-size:0.95rem;margin:0.5rem 0;padding:0.4rem 0.8rem;border-radius:999px;display:inline-block;font-weight:bold}
+    .bullish{background:#059669}.extreme-bullish{background:#10b981}.bearish{background:#dc2626}.neutral{background:#d97706}
+    .history-item{font-size:0.8rem;padding:6px 0;border-bottom:1px solid #1e293b}
+    .rocket{position:absolute;bottom:-80px;font-size:4rem;opacity:0;transition:all 2s;pointer-events:none;z-index:20}
+    .rocket.active{opacity:1;bottom:110%}
     .overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:50;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .4s}
     .overlay.active{opacity:1;visibility:visible}
-    .overlay-chart{max-width:95%;max-height:95%;width:1400px;height:700px;background:#111;border:3px solid #00ffff;border-radius:1rem;overflow:hidden;box-shadow:0 0 40px #00ffff80;position:relative}
+    .overlay-chart{max-width:95%;max-height:95%;width:1400px;height:700px;background:#111;border:3px solid #00ffff;border-radius:1rem;overflow:hidden;position:relative}
     .close-btn{position:absolute;top:20px;right:20px;background:#1e293b;color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;z-index:10}
-    .moon-calculator{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:1rem;padding:1.5rem;border:1px solid #334155;box-shadow:0 10px 25px rgba(0,255,255,0.1);text-align:center}
-    .moon-calculator h3{font-size:1.6rem;font-weight:bold;color:#00ffff;text-shadow:0 0 10px #00ffff;margin-bottom:1rem}
-    .input-group{margin:1rem 0;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
-    .input-label{font-size:1rem;color:#ccc;width:140px;text-align:right;flex-shrink:0}
-    input[type="number"]{background:#1e293b;color:white;border:1px solid #334155;border-radius:8px;padding:8px 12px;width:200px;font-size:1rem;text-align:center}
-    .portfolio-value{font-size:2.4rem;font-weight:bold;color:#00ffff;text-shadow:0 0 15px #00ffff;margin:1.2rem 0;transition:all .5s}
-    .my-moon-progress{margin:1rem 0}
-    .my-moon-bar{height:24px;background:#1e293b;border-radius:12px;overflow:hidden;position:relative}
-    .my-moon-fill{height:100%;background:linear-gradient(90deg,#ff0066,#00ffff);transition:width 1s ease}
-    .my-moon-text{position:absolute;top:0;left:0;width:100%;text-align:center;line-height:24px;font-weight:bold;color:#fff;font-size:1rem;text-shadow:0 0 5px #000}
-    .moon-message{font-size:1.3rem;margin-top:0.8rem;font-weight:bold;color:#00ffff}
-    .moon-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1rem}
-    .moon-stat{font-size:1rem;color:#ccc}
-    .moon-stat-value{font-size:1.3rem;font-weight:bold;color:#00ffff;margin-top:0.3rem}
-    @media (max-width: 768px) {
-      .portfolio-value{font-size:2rem;}
-      .moon-stat-value{font-size:1.1rem;}
-      .input-label{width:100%;text-align:center;}
-      input[type="number"]{width:100%;max-width:300px;}
-    }
+    .moon-calculator{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:1rem;padding:1.5rem;border:1px solid #334155;text-align:center}
+    @media (max-width:768px){.pred-current{font-size:1.5rem}.signal-main{font-size:2rem}}
   </style>
 </head>
 <body class="transition-colors duration-500">
-  <!-- Compact Top Banner -->
-  <div class="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-cyan-800 py-2 text-center shadow-2xl backdrop-blur-sm">
+  <div class="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-cyan-800 py-2 text-center backdrop-blur-sm">
     <div class="flex flex-col md:flex-row items-center justify-center gap-3 text-xs px-4">
-      <div class="text-cyan-300 live-badge font-bold">
-        XRP Signals Tracker • Click Card for Timeframe Chart
-      </div>
-      <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 px-5 py-1.5 rounded-full border border-purple-500/50 shadow-xl">
-        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4IiBzdHJva2U9IiM5NTAwRkYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSwgNSIvPgo8L3N2Zz4K" alt="Grok" class="w-5 h-5 grok-logo">
-        <span class="text-purple-300 font-bold text-sm tracking-wider">Created with Grok • xAI</span>
+      <div class="text-cyan-300 live-badge font-bold">XRP Signals Tracker • Enhanced</div>
+      <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 px-5 py-1.5 rounded-full border border-purple-500/50">
+        <span class="text-purple-300 font-bold text-sm">Created with Grok • xAI</span>
       </div>
     </div>
   </div>
-  <!-- Main Title -->
-  <div class="fixed top-12 left-0 right-0 z-40 text-center py-4 bg-black/90 backdrop-blur-sm border-b border-cyan-800">
-    <h2 class="text-xl md:text-2xl font-bold text-cyan-400">XRP • Real-Time Buy/Sell Signals • Momentum + Sentiment</h2>
+  <div class="fixed top-12 left-0 right-0 z-40 text-center py-3 bg-black/90 backdrop-blur-sm border-b border-cyan-800">
+    <h2 class="text-lg md:text-xl font-bold text-cyan-400">Real-Time Signals • RSI + Momentum + Sentiment</h2>
   </div>
-  <!-- Theme + Currency + Alerts -->
-  <div class="fixed top-28 right-4 z-50 flex gap-3 items-center">
-    <button id="alertToggle" class="toggle-btn" title="Enable Signal Alerts">
-      <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-      </svg>
+  <div class="fixed top-24 right-4 z-50 flex gap-3 items-center">
+    <button id="alertToggle" class="toggle-btn" title="Enable Alerts">
+      <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
     </button>
     <button id="themeToggle" class="toggle-btn">
-      <svg class="icon-moon w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-      </svg>
-      <svg class="icon-sun w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.708.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-      </svg>
+      <svg class="icon-moon w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      <svg class="icon-sun w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.708.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
     </button>
     <select id="currencySelect">
-      <option value="USD">$ USD</option>
-      <option value="AUD">A$ AUD</option>
-      <option value="EUR">€ EUR</option>
-      <option value="GBP">£ GBP</option>
-      <option value="JPY">¥ JPY</option>
-      <option value="CAD">C$ CAD</option>
-      <option value="CHF">Fr CHF</option>
-      <option value="KRW">₩ KRW</option>
+      <option value="USD">$ USD</option><option value="AUD">A$ AUD</option><option value="EUR">€ EUR</option>
+      <option value="GBP">£ GBP</option><option value="JPY">¥ JPY</option><option value="CAD">C$ CAD</option>
     </select>
   </div>
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-4 pt-44 pb-12 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+
+  <div class="max-w-7xl mx-auto px-4 pt-40 pb-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Short -->
     <div class="pred-card" id="shortCard">
-      <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term (Hours to Days)</div>
+      <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term</div>
       <div class="pred-body">
         <div class="rocket left">🚀</div>
-        <div class="pred-current">
-          <span class="pred-current-price" id="shortCurrent">$ --</span>
-          <span class="pred-current-change" id="shortChange">+0.00%</span>
-        </div>
+        <div class="pred-current"><span id="shortCurrent">$ --</span><span id="shortChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
         <div class="signal-main" id="shortSignal">HOLD</div>
-        <div class="rationale" id="shortRationale">Analyzing momentum...</div>
+        <div class="strength-bar"><div class="strength-fill" id="shortStrength" style="width:50%;background:#ffd700"></div></div>
+        <div class="text-xs text-gray-400" id="shortStrengthText">Strength: --</div>
+        <svg class="sparkline" id="shortSpark" viewBox="0 0 100 40"></svg>
+        <div class="tf-changes" id="shortTfs"></div>
+        <div class="rationale" id="shortRationale">Analyzing...</div>
+        <div class="levels" id="shortLevels"></div>
         <div class="pred-sentiment neutral" id="shortSentiment">Neutral</div>
-        <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: Momentum, volume proxy, short-term moves.</p>
       </div>
     </div>
+    <!-- Medium -->
     <div class="pred-card" id="medCard">
-      <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term (Weeks to Months)</div>
+      <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term</div>
       <div class="pred-body">
         <div class="rocket right">🚀</div>
-        <div class="pred-current">
-          <span class="pred-current-price" id="medCurrent">$ --</span>
-          <span class="pred-current-change" id="medChange">+0.00%</span>
-        </div>
+        <div class="pred-current"><span id="medCurrent">$ --</span><span id="medChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
         <div class="signal-main" id="medSignal">HOLD</div>
-        <div class="rationale" id="medRationale">Analyzing trend...</div>
+        <div class="strength-bar"><div class="strength-fill" id="medStrength" style="width:50%;background:#ffd700"></div></div>
+        <div class="text-xs text-gray-400" id="medStrengthText">Strength: --</div>
+        <svg class="sparkline" id="medSpark" viewBox="0 0 100 40"></svg>
+        <div class="tf-changes" id="medTfs"></div>
+        <div class="rationale" id="medRationale">Analyzing...</div>
+        <div class="levels" id="medLevels"></div>
         <div class="pred-sentiment neutral" id="medSentiment">Neutral</div>
-        <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: Trend + sentiment direction.</p>
       </div>
     </div>
+    <!-- Long -->
     <div class="pred-card" id="longCard">
-      <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term (Months to Years)</div>
+      <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term</div>
       <div class="pred-body">
         <div class="rocket left">🚀</div>
-        <div class="pred-current">
-          <span class="pred-current-price" id="longCurrent">$ --</span>
-          <span class="pred-current-change" id="longChange">+0.00%</span>
-        </div>
+        <div class="pred-current"><span id="longCurrent">$ --</span><span id="longChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
         <div class="signal-main" id="longSignal">ACCUMULATE</div>
-        <div class="rationale" id="longRationale">Analyzing macro...</div>
+        <div class="strength-bar"><div class="strength-fill" id="longStrength" style="width:60%;background:#00ff9d"></div></div>
+        <div class="text-xs text-gray-400" id="longStrengthText">Strength: --</div>
+        <svg class="sparkline" id="longSpark" viewBox="0 0 100 40"></svg>
+        <div class="tf-changes" id="longTfs"></div>
+        <div class="rationale" id="longRationale">Analyzing...</div>
+        <div class="levels" id="longLevels"></div>
         <div class="pred-sentiment neutral" id="longSentiment">Neutral</div>
-        <p class="text-xs text-gray-400 mt-4 text-center px-4">Focus: XRP utility + adoption outlook.</p>
       </div>
     </div>
-    <!-- Moon Calculator -->
-    <div class="md:col-span-3 moon-calculator mt-8">
-      <h3>🌕 My XRP Moon Calculator 🌕</h3>
-      <div class="input-group">
-        <span class="input-label">My Holdings:</span>
-        <input type="number" id="myHoldings" value="1000" min="0" step="1">
-        <span>XRP</span>
-      </div>
-      <div class="input-group">
-        <span class="input-label">My Moon Price:</span>
-        <input type="number" id="myMoonPrice" value="100" min="0.1" step="0.01">
-      </div>
-      <div class="portfolio-value" id="myCurrentValue">$2,020.00</div>
-      <div class="my-moon-progress">
-        <div class="my-moon-bar">
-          <div class="my-moon-fill" id="myMoonFill" style="width:2%"></div>
-          <div class="my-moon-text" id="myMoonText">2% to your moon!</div>
-        </div>
-      </div>
-      <div class="moon-message" id="myMoonMessage">Keep holding strong! 💎🙌</div>
-      <div class="moon-stats">
-        <div class="moon-stat">
-          <div>My Holdings</div>
-          <div class="moon-stat-value" id="myHoldingsDisplay">1,000 XRP</div>
-        </div>
-        <div class="moon-stat">
-          <div>My Moon Price</div>
-          <div class="moon-stat-value" id="myMoonPriceDisplay">$100.00</div>
-        </div>
-        <div class="moon-stat">
-          <div>My Moon Value</div>
-          <div class="moon-stat-value" id="myMoonValue">$100,000.00</div>
-        </div>
-      </div>
+
+    <!-- Signal History -->
+    <div class="md:col-span-3 bg-slate-900/50 border border-slate-700 rounded-2xl p-6 mt-4">
+      <h3 class="text-lg font-bold text-cyan-400 mb-3">Recent Signal Changes</h3>
+      <div id="signalHistory" class="space-y-1 max-h-48 overflow-y-auto text-sm"></div>
     </div>
-    <!-- Bottom Motivation -->
-    <div class="md:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-8 text-center mt-8">
-      <div class="text-4xl font-bold text-green-400 animate-pulse mb-4">XRP 24/7</div>
-      <div class="text-lg text-green-300 mb-6">CRYPTO NEVER SLEEPS • XRP SIGNALS</div>
-      <div class="text-cyan-400">
-        <p class="text-sm font-semibold mb-2">Total Page Views</p>
-        <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=87fxqfm966l84an29sfgkbmdynkpfut8"
-             alt="Total Page Views" border="0"
-             class="mx-auto h-6" />
+
+    <!-- Moon Calculator (kept compact) -->
+    <div class="md:col-span-3 moon-calculator mt-6">
+      <h3 class="text-xl font-bold text-cyan-400 mb-3">🌕 My XRP Moon Calculator</h3>
+      <div class="flex flex-wrap gap-4 justify-center items-center mb-3">
+        <div><label class="text-sm text-gray-400">Holdings</label><br><input type="number" id="myHoldings" value="1000" class="bg-slate-800 border border-slate-600 rounded px-3 py-1 w-32 text-center"></div>
+        <div><label class="text-sm text-gray-400">Moon Price</label><br><input type="number" id="myMoonPrice" value="100" step="0.01" class="bg-slate-800 border border-slate-600 rounded px-3 py-1 w-32 text-center"></div>
       </div>
+      <div class="text-3xl font-bold text-cyan-400" id="myCurrentValue">$2,020.00</div>
+      <div class="my-moon-bar mt-3 h-6 bg-slate-800 rounded-full overflow-hidden relative max-w-md mx-auto">
+        <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400" id="myMoonFill" style="width:2%"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-sm font-bold" id="myMoonText">2% to moon</div>
+      </div>
+      <div class="mt-2 text-cyan-300 font-semibold" id="myMoonMessage">Diamond hands 💎🙌</div>
     </div>
   </div>
+
   <div id="chartOverlay" class="overlay">
-    <div class="overlay-chart relative">
-      <div class="close-btn" id="closeOverlay">×</div>
-      <div id="chartContainer" style="height:100%;width:100%"></div>
-    </div>
+    <div class="overlay-chart"><div class="close-btn" id="closeOverlay">×</div><div id="chartContainer" style="height:100%;width:100%"></div></div>
   </div>
 
 <script>
-  const rocketSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-rocket-launch-1668.mp3');
-  const cheeringSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-stadium-crowd-cheering-1688.mp3');
+const rocketSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-rocket-launch-1668.mp3');
+let currentUSDPrice = 2.02, priceChange24h = 0, fearGreedValue = 50, fearGreedText = 'Neutral', fearGreedClass = 'neutral';
+let rates = {USD:1,AUD:1.46,EUR:0.95,GBP:0.79,JPY:155,CAD:1.39};
+const symbols = {USD:'$',AUD:'A$',EUR:'€',GBP:'£',JPY:'¥',CAD:'C$'};
+let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
+let previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
+let alertsEnabled = localStorage.getItem('xrpAlerts') === 'true';
+let signalHistory = JSON.parse(localStorage.getItem('xrpSignalHistory') || '[]');
+let klines1h = [], klines4h = [], klines1d = [];
 
-  let currentUSDPrice = 2.02;
-  let priceChange24h = 0;
-  let fearGreedValue = 50;
-  let fearGreedText = 'Neutral';
-  let fearGreedClass = 'neutral';
+const myHoldingsInput = document.getElementById('myHoldings');
+const myMoonPriceInput = document.getElementById('myMoonPrice');
 
-  let rates = { USD:1, AUD:1.46, EUR:0.95, GBP:0.79, JPY:155, CAD:1.39, CHF:0.88, KRW:1460 };
-  const symbols = { USD:'$', AUD:'A$', EUR:'€', GBP:'£', JPY:'¥', CAD:'C$', CHF:'Fr', KRW:'₩' };
-  let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
-
-  let previousSignals = { short: 'HOLD', med: 'HOLD', long: 'ACCUMULATE' };
-  let alertsEnabled = localStorage.getItem('xrpAlerts') === 'true';
-
-  let lastRocketSide = {};
-  let currentPumpState = false;
-  let currentMoonshotState = false;
-
-  const myHoldingsInput = document.getElementById('myHoldings');
-  const myMoonPriceInput = document.getElementById('myMoonPrice');
-  const myCurrentValue = document.getElementById('myCurrentValue');
-  const myMoonFill = document.getElementById('myMoonFill');
-  const myMoonText = document.getElementById('myMoonText');
-  const myMoonMessage = document.getElementById('myMoonMessage');
-  const myHoldingsDisplay = document.getElementById('myHoldingsDisplay');
-  const myMoonPriceDisplay = document.getElementById('myMoonPriceDisplay');
-  const myMoonValue = document.getElementById('myMoonValue');
-
-  function showToast(message) {
-    let toast = document.getElementById('toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'toast';
-      toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;border:1px solid #00ffff;box-shadow:0 0 20px #00ffff40;z-index:100;opacity:0;transform:translateY(20px);transition:all .4s;pointer-events:none;font-size:14px;';
-      document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(20px)';
-    }, 4000);
-  }
-
-  function requestAlertPermission() {
-    if (!('Notification' in window)) {
-      showToast('Notifications not supported in this browser');
-      return;
-    }
-    if (Notification.permission === 'granted') {
-      alertsEnabled = true;
-      localStorage.setItem('xrpAlerts', 'true');
-      showToast('Signal alerts enabled');
-      return;
-    }
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        alertsEnabled = true;
-        localStorage.setItem('xrpAlerts', 'true');
-        showToast('Signal alerts enabled!');
-      } else {
-        showToast('Notification permission denied');
-      }
-    });
-  }
-
-  function checkSignalChanges(newSignals) {
-    const labels = { short: 'Short-Term', med: 'Medium-Term', long: 'Long-Term' };
-    Object.keys(newSignals).forEach(key => {
-      const oldSig = previousSignals[key];
-      const newSig = newSignals[key].sig;
-      if (oldSig !== newSig && alertsEnabled && Notification.permission === 'granted') {
-        new Notification(`XRP ${labels[key]} Signal Changed`, {
-          body: `${oldSig} → ${newSig}`,
-          icon: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png'
-        });
-        showToast(`${labels[key]}: ${oldSig} → ${newSig}`);
-      }
-      previousSignals[key] = newSig;
-    });
-  }
-
-  function triggerPumpEffects() {
-    document.querySelectorAll('.rocket').forEach(r => {
-      r.classList.add('active');
-      setTimeout(() => r.classList.remove('active'), 2500);
-    });
-    if (rocketSound) rocketSound.play().catch(() => {});
-  }
-
-  async function updateExchangeRates() {
-    try {
-      const res = await fetch('https://v6.exchangerate-api.com/v6/2e28bae41916290695aca1ce/latest/USD');
-      const data = await res.json();
-      if (data.result === 'success') {
-        rates = { USD: 1, ...data.conversion_rates };
-      }
-    } catch (e) {
-      // fallback
-    }
-    updateAll();
-  }
-
-  function formatFull(value, sym) {
-    return sym + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  function updateAll() {
-    const rate = rates[currentCurrency];
-    const sym = symbols[currentCurrency];
-    const displayPrice = (currentUSDPrice * rate).toFixed(4);
-    const change24hPct = priceChange24h;
-
-    const sigs = generateSignals();
-
-    ['short', 'med', 'long'].forEach(term => {
-      const currentEl = document.getElementById(`${term}Current`);
-      if (currentEl) currentEl.textContent = sym + displayPrice;
-
-      const changeEl = document.getElementById(`${term}Change`);
-      if (changeEl) {
-        changeEl.textContent = (change24hPct > 0 ? '+' : '') + change24hPct.toFixed(2) + '%';
-        changeEl.className = 'pred-current-change ' + (change24hPct > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40');
-      }
-
-      const signalEl = document.getElementById(`${term}Signal`);
-      const ratEl = document.getElementById(`${term}Rationale`);
-      const sentEl = document.getElementById(`${term}Sentiment`);
-
-      if (signalEl && ratEl && sentEl) {
-        const s = sigs[term];
-        signalEl.textContent = s.sig || 'HOLD';
-        signalEl.className = `signal-main ${s.col || 'hold'}`;
-        ratEl.textContent = s.rat || 'Analyzing...';
-        sentEl.textContent = fearGreedText || 'Neutral';
-        sentEl.className = `pred-sentiment ${fearGreedClass || 'neutral'}`;
-      }
-    });
-
-    checkSignalChanges(sigs);
-    updateMyMoonCalculator();
-    // Force-repaint block removed — this was causing the scroll jump
-  }
-
-  async function updatePriceAndVolume() {
-    try {
-      const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT');
-      if(r.ok){
-        const d = await r.json();
-        currentUSDPrice = parseFloat(d.lastPrice);
-        priceChange24h = parseFloat(d.priceChangePercent);
-      }
-    } catch(e) {
-      try {
-        const r = await fetch('https://api.coingecko.com/api/v3/coins/ripple');
-        const d = await r.json();
-        currentUSDPrice = d.market_data.current_price.usd;
-        priceChange24h = d.market_data.price_change_percentage_24h || 0;
-      } catch(ee) {
-        priceChange24h = 0;
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;border:1px solid #00ffff;z-index:100;opacity:0;transition:all .4s'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0', 3500);
+}
+function requestAlertPermission() {
+  if (!('Notification' in window)) return showToast('Notifications not supported');
+  if (Notification.permission === 'granted') { alertsEnabled=true; localStorage.setItem('xrpAlerts','true'); return showToast('Alerts enabled'); }
+  Notification.requestPermission().then(p => { if(p==='granted'){alertsEnabled=true;localStorage.setItem('xrpAlerts','true');showToast('Alerts enabled!');} });
+}
+function addToHistory(term, oldS, newS) {
+  const entry = {time:new Date().toLocaleTimeString(), term, oldS, newS};
+  signalHistory.unshift(entry);
+  if (signalHistory.length > 12) signalHistory.pop();
+  localStorage.setItem('xrpSignalHistory', JSON.stringify(signalHistory));
+  renderHistory();
+}
+function renderHistory() {
+  const el = document.getElementById('signalHistory');
+  el.innerHTML = signalHistory.map(h => `<div class="history-item text-gray-300">${h.time} • <span class="text-cyan-400">${h.term}</span> ${h.oldS} → <b>${h.newS}</b></div>`).join('') || '<div class="text-gray-500">No changes yet</div>';
+}
+function checkSignalChanges(sigs) {
+  const labels={short:'Short',med:'Medium',long:'Long'};
+  Object.keys(sigs).forEach(k => {
+    const old=previousSignals[k], neu=sigs[k].sig;
+    if (old !== neu) {
+      addToHistory(labels[k], old, neu);
+      if (alertsEnabled && Notification.permission==='granted') {
+        new Notification(`XRP ${labels[k]} Signal`, {body:`${old} → ${neu}`, icon:'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png'});
+        showToast(`${labels[k]}: ${old} → ${neu}`);
       }
     }
-    await updateFearGreed();
-    updateAll();
-  }
+    previousSignals[k]=neu;
+  });
+}
 
-  async function updateFearGreed() {
-    try {
-      const res = await fetch('https://api.alternative.me/fng/?limit=1');
-      const data = await res.json();
-      if (data?.data?.[0]) {
-        fearGreedValue = parseInt(data.data[0].value);
-        if (fearGreedValue >= 75) { fearGreedText = 'Extreme Greed'; fearGreedClass = 'extreme-bullish'; }
-        else if (fearGreedValue >= 50) { fearGreedText = 'Greed'; fearGreedClass = 'bullish'; }
-        else if (fearGreedValue >= 25) { fearGreedText = 'Neutral'; fearGreedClass = 'neutral'; }
-        else { fearGreedText = 'Extreme Fear'; fearGreedClass = 'bearish'; }
-      }
-    } catch (e) {}
-    updateAll();
+function calcRSI(closes, period=14) {
+  if (closes.length < period+1) return 50;
+  let gains=0, losses=0;
+  for (let i=1;i<=period;i++) { const d=closes[i]-closes[i-1]; if(d>0) gains+=d; else losses-=d; }
+  let avgGain=gains/period, avgLoss=losses/period;
+  for (let i=period+1;i<closes.length;i++) {
+    const d=closes[i]-closes[i-1];
+    avgGain=(avgGain*(period-1)+(d>0?d:0))/period;
+    avgLoss=(avgLoss*(period-1)+(d<0?-d:0))/period;
   }
+  if (avgLoss===0) return 100;
+  const rs=avgGain/avgLoss;
+  return 100 - (100/(1+rs));
+}
+function sma(arr, n) { if(arr.length<n) return arr[arr.length-1]; return arr.slice(-n).reduce((a,b)=>a+b,0)/n; }
+function drawSparkline(id, prices) {
+  const svg = document.getElementById(id);
+  if (!prices.length) return;
+  const min=Math.min(...prices), max=Math.max(...prices), range=max-min||1;
+  const pts = prices.map((p,i)=>`${(i/(prices.length-1))*100},${40-((p-min)/range)*36}`).join(' ');
+  svg.innerHTML = `<polyline fill="none" stroke="#22d3ee" stroke-width="1.5" points="${pts}"/>`;
+}
 
-  function generateSignals() {
-    const change = priceChange24h;
-    const fg = fearGreedValue || 50;
-    let shortSig = 'HOLD', shortRat = 'Market neutral', shortCol = 'hold';
-    if (change > 5 || (change > 2 && fg > 40)) {
-      shortSig = 'BUY'; shortRat = 'Momentum + volume proxy'; shortCol = 'buy';
-      if (change > 10) triggerPumpEffects();
-    } else if (change < -5 || fg < 20) {
-      shortSig = 'SELL'; shortRat = 'Bearish pressure'; shortCol = 'sell';
+async function fetchData() {
+  try {
+    const [t, k1, k4, kd] = await Promise.all([
+      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT').then(r=>r.json()),
+      fetch('https://api.binance.com/api/v3/klines?symbol=XRPUSDT&interval=1h&limit=50').then(r=>r.json()),
+      fetch('https://api.binance.com/api/v3/klines?symbol=XRPUSDT&interval=4h&limit=50').then(r=>r.json()),
+      fetch('https://api.binance.com/api/v3/klines?symbol=XRPUSDT&interval=1d&limit=30').then(r=>r.json())
+    ]);
+    currentUSDPrice = parseFloat(t.lastPrice);
+    priceChange24h = parseFloat(t.priceChangePercent);
+    klines1h = k1.map(c=>parseFloat(c[4]));
+    klines4h = k4.map(c=>parseFloat(c[4]));
+    klines1d = kd.map(c=>parseFloat(c[4]));
+  } catch(e) { console.warn(e); }
+  try {
+    const fg = await fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json());
+    if (fg.data?.[0]) {
+      fearGreedValue = +fg.data[0].value;
+      if (fearGreedValue>=75){fearGreedText='Extreme Greed';fearGreedClass='extreme-bullish';}
+      else if (fearGreedValue>=50){fearGreedText='Greed';fearGreedClass='bullish';}
+      else if (fearGreedValue>=25){fearGreedText='Neutral';fearGreedClass='neutral';}
+      else {fearGreedText='Extreme Fear';fearGreedClass='bearish';}
     }
-    let medSig = 'HOLD', medRat = 'Trend neutral', medCol = 'hold';
-    if (change > 3 && fg > 30) { medSig = 'BUY'; medRat = 'Positive sentiment building'; medCol = 'buy'; }
-    else if (change < -3 || fg < 25) { medSig = 'SELL/WATCH'; medRat = 'Caution advised'; medCol = 'sell'; }
-    let longSig = 'ACCUMULATE', longRat = 'Long-term utility strong', longCol = 'buy';
-    if (fg < 25) longRat += ' – Buy the fear';
-    return {
-      short: {sig: shortSig, rat: shortRat, col: shortCol},
-      med: {sig: medSig, rat: medRat, col: medCol},
-      long: {sig: longSig, rat: longRat, col: longCol}
-    };
-  }
+  } catch(e){}
+  updateAll();
+}
 
-  function updateMyMoonCalculator() {
-    const holdings = parseFloat(myHoldingsInput.value) || 0;
-    const moonPriceUSD = parseFloat(myMoonPriceInput.value) || 0;
-    const rate = rates[currentCurrency];
-    const sym = symbols[currentCurrency];
-    const currentValue = holdings * currentUSDPrice * rate;
-    myCurrentValue.textContent = formatFull(currentValue, sym);
-    const moonValue = holdings * moonPriceUSD;
-    myMoonValue.textContent = moonValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    myMoonPriceDisplay.textContent = formatFull(moonPriceUSD, sym);
-    myHoldingsDisplay.textContent = holdings.toLocaleString() + ' XRP';
-    const currentPriceInCurrency = currentUSDPrice * rate;
-    if (moonPriceUSD > 0 && currentPriceInCurrency < moonPriceUSD) {
-      const progress = (currentPriceInCurrency / moonPriceUSD) * 100;
-      myMoonFill.style.width = progress + '%';
-      myMoonText.textContent = progress.toFixed(1) + '% to your moon!';
-      if (progress >= 90) myMoonMessage.textContent = 'SO CLOSE!! 🌕 ALMOST THERE 🌕';
-      else if (progress >= 50) myMoonMessage.textContent = 'Halfway to the moon! Keep going! 🚀';
-      else if (progress >= 20) myMoonMessage.textContent = 'On your way! 💪';
-      else myMoonMessage.textContent = 'Diamond hands pay off! 💎🙌';
-    } else if (currentPriceInCurrency >= moonPriceUSD) {
-      myMoonFill.style.width = '100%';
-      myMoonText.textContent = 'YOU MADE IT TO THE MOON!! 🌕🌕🌕';
-      myMoonMessage.textContent = 'CONGRATULATIONS!! 🎉🚀🌙';
-      if (!window.moonAchievedConfetti) {
-        confetti({particleCount: 500, spread: 100});
-        window.moonAchievedConfetti = true;
-      }
-    } else {
-      myMoonFill.style.width = '0%';
-      myMoonText.textContent = 'Set your moon target!';
-      myMoonMessage.textContent = 'Dream big! 🌟';
-    }
-  }
+function generateSignals() {
+  const rsi1h = calcRSI(klines1h);
+  const rsi4h = calcRSI(klines4h);
+  const ma7_1h = sma(klines1h,7), ma25_1h = sma(klines1h,25);
+  const ma7_4h = sma(klines4h,7), ma25_4h = sma(klines4h,25);
+  const change1h = klines1h.length>1 ? ((klines1h.at(-1)-klines1h.at(-2))/klines1h.at(-2))*100 : 0;
+  const change4h = klines4h.length>1 ? ((klines4h.at(-1)-klines4h.at(-2))/klines4h.at(-2))*100 : 0;
+  const change7d = klines1d.length>7 ? ((klines1d.at(-1)-klines1d.at(-8))/klines1d.at(-8))*100 : 0;
 
-  function loadTradingViewChart(interval) {
-    const container = document.getElementById('chartContainer');
-    container.innerHTML = '';
-    const widgetContainer = document.createElement('div');
-    widgetContainer.className = 'tradingview-widget-container';
-    widgetContainer.style.height = '100%';
-    widgetContainer.style.width = '100%';
-    const innerDiv = document.createElement('div');
-    innerDiv.className = 'tradingview-widget-container__widget';
-    innerDiv.style.height = '100%';
-    innerDiv.style.width = '100%';
-    widgetContainer.appendChild(innerDiv);
-    container.appendChild(widgetContainer);
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-    script.async = true;
-    script.innerHTML = JSON.stringify({
-      "autosize": true,
-      "symbol": "BINANCE:XRPUSDT",
-      "interval": interval,
-      "timezone": "Etc/UTC",
-      "theme": "dark",
-      "style": "1",
-      "locale": "en",
-      "backgroundColor": "#111111",
-      "gridColor": "#1e293b",
-      "withdateranges": true,
-      "hide_side_toolbar": false,
-      "allow_symbol_change": false,
-      "save_image": false,
-      "hide_volume": false,
-      "support_host": "https://www.tradingview.com"
-    });
-    innerDiv.appendChild(script);
-  }
+  // Short
+  let sSig='HOLD', sStr=50, sRat=`RSI(1h) ${rsi1h.toFixed(0)} • 24h ${priceChange24h.toFixed(1)}%`;
+  if (rsi1h<30 || (change1h>1.5 && rsi1h<55)) { sSig='BUY'; sStr=Math.min(95,60+ (30-rsi1h)*1.5); sRat='Oversold / momentum bounce'; }
+  else if (rsi1h>70 || change1h<-2) { sSig='SELL'; sStr=Math.min(90,55+(rsi1h-70)*1.2); sRat='Overbought / weak momentum'; }
+  else if (ma7_1h > ma25_1h) sStr=62;
 
-  function showOverlay(interval) {
-    loadTradingViewChart(interval);
-    document.getElementById('chartOverlay').classList.add('active');
-  }
+  // Medium
+  let mSig='HOLD', mStr=50, mRat=`RSI(4h) ${rsi4h.toFixed(0)} • 4h ${change4h.toFixed(1)}%`;
+  if (rsi4h<35 && ma7_4h>ma25_4h) { mSig='BUY'; mStr=70; mRat='Bullish structure + room to run'; }
+  else if (rsi4h>65 || change4h<-3) { mSig='SELL/WATCH'; mStr=65; mRat='Extended / caution'; }
+  else if (ma7_4h > ma25_4h) { mStr=58; mRat='Uptrend intact'; }
 
-  document.getElementById('closeOverlay').onclick = () => {
-    document.getElementById('chartOverlay').classList.remove('active');
-    document.getElementById('chartContainer').innerHTML = '';
+  // Long
+  let lSig='ACCUMULATE', lStr=65, lRat='Long-term utility + adoption';
+  if (fearGreedValue<30) { lStr=80; lRat+=' • Buy the fear'; }
+  else if (fearGreedValue>75) lStr=45;
+
+  return {
+    short:{sig:sSig, str:sStr, rat:sRat, rsi:rsi1h, ch1:change1h, ch4:change4h, ch24:priceChange24h, ch7:change7d},
+    med:{sig:mSig, str:mStr, rat:mRat, rsi:rsi4h, ch1:change1h, ch4:change4h, ch24:priceChange24h, ch7:change7d},
+    long:{sig:lSig, str:lStr, rat:lRat, rsi:rsi4h, ch1:change1h, ch4:change4h, ch24:priceChange24h, ch7:change7d}
   };
+}
 
-  document.getElementById('shortCard').onclick = () => showOverlay('60');
-  document.getElementById('medCard').onclick = () => showOverlay('D');
-  document.getElementById('longCard').onclick = () => showOverlay('W');
+function updateAll() {
+  const rate=rates[currentCurrency]||1, sym=symbols[currentCurrency]||'$';
+  const disp=(currentUSDPrice*rate).toFixed(4);
+  const sigs=generateSignals();
 
-  // Theme Toggle
-  const savedTheme = localStorage.getItem('xrpTheme');
-  if (savedTheme === 'light') {
-    document.documentElement.classList.remove('dark');
-    document.body.style.background = '#f3f4f6';
-  } else {
-    document.documentElement.classList.add('dark');
-    document.body.style.background = '#000';
-  }
-  const isDark = document.documentElement.classList.contains('dark');
-  document.querySelector('.icon-moon').style.display = isDark ? 'block' : 'none';
-  document.querySelector('.icon-sun').style.display = isDark ? 'none' : 'block';
-
-  document.getElementById('themeToggle').onclick = () => {
-    document.documentElement.classList.toggle('dark');
-    const isDarkNow = document.documentElement.classList.contains('dark');
-    document.body.style.background = isDarkNow ? '#000' : '#f3f4f6';
-    localStorage.setItem('xrpTheme', isDarkNow ? 'dark' : 'light');
-    document.querySelector('.icon-moon').style.display = isDarkNow ? 'block' : 'none';
-    document.querySelector('.icon-sun').style.display = isDarkNow ? 'none' : 'block';
-  };
-
-  document.getElementById('alertToggle').onclick = requestAlertPermission;
-
-  document.getElementById('currencySelect').value = currentCurrency;
-  document.getElementById('currencySelect').onchange = e => {
-    currentCurrency = e.target.value;
-    localStorage.setItem('xrpCurrency', currentCurrency);
-    updateAll();
-  };
-
-  // Moon Listeners
-  if (localStorage.getItem('myHoldings')) myHoldingsInput.value = localStorage.getItem('myHoldings');
-  if (localStorage.getItem('myMoonPrice')) myMoonPriceInput.value = localStorage.getItem('myMoonPrice');
-
-  myHoldingsInput.addEventListener('input', () => {
-    localStorage.setItem('myHoldings', myHoldingsInput.value);
-    updateMyMoonCalculator();
+  ['short','med','long'].forEach(term=>{
+    const s=sigs[term];
+    document.getElementById(`${term}Current`).textContent=sym+disp;
+    const chEl=document.getElementById(`${term}Change`);
+    chEl.textContent=(priceChange24h>0?'+':'')+priceChange24h.toFixed(2)+'%';
+    chEl.className='text-sm px-2 py-1 rounded '+(priceChange24h>0?'text-green-400 bg-green-900/40':'text-red-400 bg-red-900/40');
+    document.getElementById(`${term}Signal`).textContent=s.sig;
+    document.getElementById(`${term}Signal`).className=`signal-main ${s.sig.includes('BUY')||s.sig==='ACCUMULATE'?'buy':s.sig.includes('SELL')?'sell':'hold'}`;
+    const strEl=document.getElementById(`${term}Strength`);
+    strEl.style.width=s.str+'%';
+    strEl.style.background=s.str>65?'#00ff9d':s.str<40?'#ff4d4d':'#ffd700';
+    document.getElementById(`${term}StrengthText`).textContent=`Strength: ${s.str.toFixed(0)}%`;
+    document.getElementById(`${term}Rationale`).textContent=s.rat;
+    document.getElementById(`${term}Sentiment`).textContent=fearGreedText;
+    document.getElementById(`${term}Sentiment`).className=`pred-sentiment ${fearGreedClass}`;
+    document.getElementById(`${term}Tfs`).innerHTML=`
+      <span class="tf-change">1h ${s.ch1>0?'+':''}${s.ch1.toFixed(1)}%</span>
+      <span class="tf-change">4h ${s.ch4>0?'+':''}${s.ch4.toFixed(1)}%</span>
+      <span class="tf-change">24h ${s.ch24>0?'+':''}${s.ch24.toFixed(1)}%</span>
+      <span class="tf-change">7d ${s.ch7>0?'+':''}${s.ch7.toFixed(1)}%</span>`;
+    // Levels
+    const prices = term==='short'?klines1h:term==='med'?klines4h:klines1d;
+    if (prices.length) {
+      const hi=Math.max(...prices.slice(-20)), lo=Math.min(...prices.slice(-20));
+      document.getElementById(`${term}Levels`).textContent=`S: ${(lo*rate).toFixed(4)}  R: ${(hi*rate).toFixed(4)}`;
+    }
+    drawSparkline(`${term}Spark`, term==='short'?klines1h.slice(-24):term==='med'?klines4h.slice(-24):klines1d.slice(-20));
   });
 
-  myMoonPriceInput.addEventListener('input', () => {
-    localStorage.setItem('myMoonPrice', myMoonPriceInput.value);
-    updateMyMoonCalculator();
-  });
+  checkSignalChanges(sigs);
+  updateMoon();
+}
 
-  // Start
-  updateExchangeRates();
-  updatePriceAndVolume();
-  setInterval(updatePriceAndVolume, 5000);
-  updateMyMoonCalculator();
-  setInterval(updateMyMoonCalculator, 5000);
+function updateMoon() {
+  const h=+myHoldingsInput.value||0, mp=+myMoonPriceInput.value||0;
+  const rate=rates[currentCurrency]||1, sym=symbols[currentCurrency]||'$';
+  const cv=h*currentUSDPrice*rate;
+  document.getElementById('myCurrentValue').textContent=sym+cv.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const prog=mp>0?Math.min(100,(currentUSDPrice*rate/mp)*100):0;
+  document.getElementById('myMoonFill').style.width=prog+'%';
+  document.getElementById('myMoonText').textContent=prog.toFixed(1)+'% to moon';
+  document.getElementById('myMoonMessage').textContent=prog>=100?'YOU MADE IT!! 🌕':prog>50?'Halfway there 🚀':'Diamond hands 💎🙌';
+}
+
+// Chart overlay (unchanged logic)
+function loadTradingViewChart(interval) {
+  const c=document.getElementById('chartContainer'); c.innerHTML='';
+  const w=document.createElement('div'); w.className='tradingview-widget-container'; w.style.height='100%';
+  const i=document.createElement('div'); i.className='tradingview-widget-container__widget'; i.style.height='100%';
+  w.appendChild(i); c.appendChild(w);
+  const s=document.createElement('script'); s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js'; s.async=true;
+  s.innerHTML=JSON.stringify({autosize:true,symbol:"BINANCE:XRPUSDT",interval,timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",backgroundColor:"#111111",gridColor:"#1e293b",withdateranges:true,hide_side_toolbar:false,allow_symbol_change:false,support_host:"https://www.tradingview.com"});
+  i.appendChild(s);
+}
+function showOverlay(iv){loadTradingViewChart(iv);document.getElementById('chartOverlay').classList.add('active');}
+document.getElementById('closeOverlay').onclick=()=>{document.getElementById('chartOverlay').classList.remove('active');document.getElementById('chartContainer').innerHTML='';};
+document.getElementById('shortCard').onclick=()=>showOverlay('60');
+document.getElementById('medCard').onclick=()=>showOverlay('240');
+document.getElementById('longCard').onclick=()=>showOverlay('D');
+
+// Theme + currency + alerts
+document.getElementById('alertToggle').onclick=requestAlertPermission;
+document.getElementById('themeToggle').onclick=()=>{
+  document.documentElement.classList.toggle('dark');
+  const dark=document.documentElement.classList.contains('dark');
+  document.body.style.background=dark?'#000':'#f3f4f6';
+  localStorage.setItem('xrpTheme',dark?'dark':'light');
+};
+document.getElementById('currencySelect').value=currentCurrency;
+document.getElementById('currencySelect').onchange=e=>{currentCurrency=e.target.value;localStorage.setItem('xrpCurrency',currentCurrency);updateAll();};
+if(localStorage.getItem('myHoldings')) myHoldingsInput.value=localStorage.getItem('myHoldings');
+if(localStorage.getItem('myMoonPrice')) myMoonPriceInput.value=localStorage.getItem('myMoonPrice');
+myHoldingsInput.oninput=()=>{localStorage.setItem('myHoldings',myHoldingsInput.value);updateMoon();};
+myMoonPriceInput.oninput=()=>{localStorage.setItem('myMoonPrice',myMoonPriceInput.value);updateMoon();};
+
+renderHistory();
+fetchData();
+setInterval(fetchData, 20000);
 </script>
 </body>
 </html>
