@@ -13,7 +13,7 @@
     .toggle-btn:hover{background:#374151}
     .icon-moon{display:block}.icon-sun{display:none}
     html:not(.dark) .icon-moon{display:none} html:not(.dark) .icon-sun{display:block}
-    select{font-size:14px;padding:8px 12px;border-radius:8px;background:#1f2937;color:#fff;border:1px solid #374151}
+    select, input[type="text"]{font-size:14px;padding:8px 12px;border-radius:8px;background:#1f2937;color:#fff;border:1px solid #374151}
     .live-badge{background:linear-gradient(90deg,#059669,#10b981);color:white;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold}
     .pred-card{border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;box-shadow:0 10px 20px rgba(0,255,255,0.1);position:relative;cursor:pointer;transition:transform .3s}
     .pred-card:hover{transform:scale(1.02)}
@@ -54,7 +54,7 @@
   <div class="fixed top-12 left-0 right-0 z-40 text-center py-3 bg-black/90 backdrop-blur-sm border-b border-cyan-800">
     <h2 class="text-lg md:text-xl font-bold text-cyan-400">Real-Time Signals • RSI + Momentum + Sentiment</h2>
   </div>
-  <div class="fixed top-24 right-4 z-50 flex gap-3 items-center">
+  <div class="fixed top-24 right-4 z-50 flex flex-wrap gap-2 items-center">
     <select id="coinSelect" class="text-sm">
       <option value="XRPUSDT">XRP</option>
       <option value="BTCUSDT">BTC</option>
@@ -64,7 +64,11 @@
       <option value="ADAUSDT">ADA</option>
       <option value="DOGEUSDT">DOGE</option>
       <option value="AVAXUSDT">AVAX</option>
+      <option value="XLMUSDT">XLM</option>
+      <option value="QNTUSDT">QNT</option>
+      <option value="custom">Custom…</option>
     </select>
+    <input type="text" id="customSymbol" placeholder="e.g. XDCUSDT" class="w-32 text-sm hidden" maxlength="12">
     <button id="alertToggle" class="toggle-btn" title="Enable Alerts">
       <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
     </button>
@@ -134,7 +138,7 @@
       <div id="signalHistory" class="space-y-1 max-h-48 overflow-y-auto text-sm"></div>
     </div>
 
-    <!-- Moon / Portfolio Calculator -->
+    <!-- Calculator -->
     <div class="md:col-span-3 moon-calculator mt-8">
       <h3 class="text-xl md:text-2xl font-bold text-cyan-400 mb-4">🌕 My <span id="coinName">XRP</span> Calculator 🌕</h3>
 
@@ -204,6 +208,7 @@ let klines1h = [], klines4h = [], klines1d = [];
 const myHoldingsInput = document.getElementById('myHoldings');
 const myMoonPriceInput = document.getElementById('myMoonPrice');
 const coinSelect = document.getElementById('coinSelect');
+const customSymbolInput = document.getElementById('customSymbol');
 
 function showToast(msg) {
   let t = document.getElementById('toast');
@@ -264,6 +269,17 @@ function drawSparkline(id, prices) {
   svg.innerHTML = `<polyline fill="none" stroke="#22d3ee" stroke-width="1.5" points="${pts}"/>`;
 }
 
+function setSymbol(sym) {
+  currentSymbol = sym.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (!currentSymbol.endsWith('USDT')) currentSymbol += 'USDT';
+  coinName = currentSymbol.replace('USDT','');
+  localStorage.setItem('cryptoSymbol', currentSymbol);
+  previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
+  document.getElementById('coinName').textContent = coinName;
+  document.getElementById('coinUnit').textContent = coinName;
+  fetchData();
+}
+
 async function fetchData() {
   try {
     const [t, k1, k4, kd] = await Promise.all([
@@ -272,12 +288,16 @@ async function fetchData() {
       fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=4h&limit=50`).then(r=>r.json()),
       fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1d&limit=30`).then(r=>r.json())
     ]);
+    if (t.code) throw new Error(t.msg || 'Invalid symbol');
     currentUSDPrice = parseFloat(t.lastPrice);
     priceChange24h = parseFloat(t.priceChangePercent);
     klines1h = k1.map(c=>parseFloat(c[4]));
     klines4h = k4.map(c=>parseFloat(c[4]));
     klines1d = kd.map(c=>parseFloat(c[4]));
-  } catch(e) { console.warn(e); }
+  } catch(e) {
+    console.warn(e);
+    showToast('Invalid symbol or no data on Binance');
+  }
   try {
     const fg = await fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json());
     if (fg.data?.[0]) {
@@ -433,14 +453,30 @@ document.getElementById('themeToggle').onclick=()=>{
 document.getElementById('currencySelect').value=currentCurrency;
 document.getElementById('currencySelect').onchange=e=>{currentCurrency=e.target.value;localStorage.setItem('xrpCurrency',currentCurrency);updateAll();};
 
-coinSelect.value = currentSymbol;
+// Coin selector + custom
+function updateCoinUI() {
+  const isCustom = !['XRPUSDT','BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','ADAUSDT','DOGEUSDT','AVAXUSDT','XLMUSDT','QNTUSDT'].includes(currentSymbol);
+  coinSelect.value = isCustom ? 'custom' : currentSymbol;
+  customSymbolInput.classList.toggle('hidden', !isCustom);
+  if (isCustom) customSymbolInput.value = currentSymbol;
+}
 coinSelect.onchange = e => {
-  currentSymbol = e.target.value;
-  coinName = currentSymbol.replace('USDT','');
-  localStorage.setItem('cryptoSymbol', currentSymbol);
-  previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
-  fetchData();
+  if (e.target.value === 'custom') {
+    customSymbolInput.classList.remove('hidden');
+    customSymbolInput.focus();
+  } else {
+    customSymbolInput.classList.add('hidden');
+    setSymbol(e.target.value);
+  }
 };
+customSymbolInput.addEventListener('change', () => {
+  if (customSymbolInput.value.trim()) setSymbol(customSymbolInput.value);
+});
+customSymbolInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && customSymbolInput.value.trim()) setSymbol(customSymbolInput.value);
+});
+
+updateCoinUI();
 
 if(localStorage.getItem('myHoldings')) myHoldingsInput.value=localStorage.getItem('myHoldings');
 if(localStorage.getItem('myMoonPrice')) myMoonPriceInput.value=localStorage.getItem('myMoonPrice');
