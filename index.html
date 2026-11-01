@@ -31,7 +31,7 @@
     .rationale{font-size:0.9rem;color:#a0aec0;margin:0.6rem 0;line-height:1.3}
     .pred-sentiment{font-size:0.95rem;margin:0.5rem 0;padding:0.4rem 0.8rem;border-radius:999px;display:inline-block;font-weight:bold}
     .bullish{background:#059669}.extreme-bullish{background:#10b981}.bearish{background:#dc2626}.neutral{background:#d97706}
-    .history-item{font-size:0.8rem;padding:6px 0;border-bottom:1px solid #1e293b}
+    .history-item{font-size:0.8rem;padding:8px 0;border-bottom:1px solid #1e293b;line-height:1.4}
     .rocket{position:absolute;bottom:-80px;font-size:4rem;opacity:0;transition:all 2s;pointer-events:none;z-index:20}
     .rocket.active{opacity:1;bottom:110%}
     .overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:50;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .4s}
@@ -135,7 +135,7 @@
     <!-- Signal History -->
     <div class="md:col-span-3 bg-slate-900/50 border border-slate-700 rounded-2xl p-6 mt-4">
       <h3 class="text-lg font-bold text-cyan-400 mb-3">Recent Signal Changes</h3>
-      <div id="signalHistory" class="space-y-1 max-h-48 overflow-y-auto text-sm"></div>
+      <div id="signalHistory" class="space-y-1 max-h-64 overflow-y-auto text-sm"></div>
     </div>
 
     <!-- Calculator -->
@@ -220,25 +220,52 @@ function requestAlertPermission() {
   if (Notification.permission === 'granted') { alertsEnabled=true; localStorage.setItem('xrpAlerts','true'); return showToast('Alerts enabled'); }
   Notification.requestPermission().then(p => { if(p==='granted'){alertsEnabled=true;localStorage.setItem('xrpAlerts','true');showToast('Alerts enabled!');} });
 }
-function addToHistory(term, oldS, newS) {
-  const entry = {time:new Date().toLocaleTimeString(), term, oldS, newS, coin: coinName};
+
+function addToHistory(term, oldS, newS, strength, rsi, price, rationale) {
+  const entry = {
+    time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+    coin: coinName,
+    term,
+    oldS,
+    newS,
+    strength: Math.round(strength),
+    rsi: Math.round(rsi),
+    price: price.toFixed(4),
+    rationale: rationale.split('•')[0].trim()
+  };
   signalHistory.unshift(entry);
-  if (signalHistory.length > 15) signalHistory.pop();
+  if (signalHistory.length > 12) signalHistory.pop();
   localStorage.setItem('xrpSignalHistory', JSON.stringify(signalHistory));
   renderHistory();
 }
+
 function renderHistory() {
   const el = document.getElementById('signalHistory');
-  el.innerHTML = signalHistory.map(h => `<div class="history-item text-gray-300">${h.time} • <span class="text-cyan-400">${h.coin || ''} ${h.term}</span> ${h.oldS} → <b>${h.newS}</b></div>`).join('') || '<div class="text-gray-500">No changes yet</div>';
+  if (!signalHistory.length) {
+    el.innerHTML = '<div class="text-gray-500">No signal changes yet</div>';
+    return;
+  }
+  el.innerHTML = signalHistory.map(h => `
+    <div class="history-item">
+      <span class="text-gray-400">${h.time}</span> • 
+      <span class="text-cyan-400 font-medium">${h.coin} ${h.term}</span> 
+      <b>${h.oldS} → ${h.newS}</b>
+      <span class="text-yellow-300">(${h.strength}%)</span>
+      <span class="text-gray-400"> RSI ${h.rsi}</span>
+      <span class="text-green-400"> $${h.price}</span>
+      <div class="text-xs text-gray-500 mt-0.5">${h.rationale}</div>
+    </div>
+  `).join('');
 }
+
 function checkSignalChanges(sigs) {
   const labels={short:'Short',med:'Medium',long:'Long'};
   Object.keys(sigs).forEach(k => {
     const old=previousSignals[k], neu=sigs[k].sig;
     if (old !== neu) {
-      addToHistory(labels[k], old, neu);
+      addToHistory(labels[k], old, neu, sigs[k].str, sigs[k].rsi, currentUSDPrice, sigs[k].rat);
       if (alertsEnabled && Notification.permission==='granted') {
-        new Notification(`${coinName} ${labels[k]} Signal`, {body:`${old} → ${neu}`});
+        new Notification(`${coinName} ${labels[k]} Signal`, {body:`${old} → ${neu} (${Math.round(sigs[k].str)}%)`});
         showToast(`${coinName} ${labels[k]}: ${old} → ${neu}`);
       }
     }
@@ -453,7 +480,6 @@ document.getElementById('themeToggle').onclick=()=>{
 document.getElementById('currencySelect').value=currentCurrency;
 document.getElementById('currencySelect').onchange=e=>{currentCurrency=e.target.value;localStorage.setItem('xrpCurrency',currentCurrency);updateAll();};
 
-// Coin selector + custom
 function updateCoinUI() {
   const isCustom = !['XRPUSDT','BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','ADAUSDT','DOGEUSDT','AVAXUSDT','XLMUSDT','QNTUSDT'].includes(currentSymbol);
   coinSelect.value = isCustom ? 'custom' : currentSymbol;
