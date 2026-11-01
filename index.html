@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XRP Signals Tracker • Enhanced</title>
+  <title>Crypto Signals Tracker • Enhanced</title>
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -45,7 +45,7 @@
 <body class="transition-colors duration-500">
   <div class="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-cyan-800 py-2 text-center backdrop-blur-sm">
     <div class="flex flex-col md:flex-row items-center justify-center gap-3 text-xs px-4">
-      <div class="text-cyan-300 live-badge font-bold">XRP Signals Tracker • Enhanced</div>
+      <div class="text-cyan-300 live-badge font-bold">Crypto Signals Tracker • Enhanced</div>
       <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 px-5 py-1.5 rounded-full border border-purple-500/50">
         <span class="text-purple-300 font-bold text-sm">Created with Grok • xAI</span>
       </div>
@@ -55,6 +55,16 @@
     <h2 class="text-lg md:text-xl font-bold text-cyan-400">Real-Time Signals • RSI + Momentum + Sentiment</h2>
   </div>
   <div class="fixed top-24 right-4 z-50 flex gap-3 items-center">
+    <select id="coinSelect" class="text-sm">
+      <option value="XRPUSDT">XRP</option>
+      <option value="BTCUSDT">BTC</option>
+      <option value="ETHUSDT">ETH</option>
+      <option value="SOLUSDT">SOL</option>
+      <option value="BNBUSDT">BNB</option>
+      <option value="ADAUSDT">ADA</option>
+      <option value="DOGEUSDT">DOGE</option>
+      <option value="AVAXUSDT">AVAX</option>
+    </select>
     <button id="alertToggle" class="toggle-btn" title="Enable Alerts">
       <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
     </button>
@@ -124,9 +134,9 @@
       <div id="signalHistory" class="space-y-1 max-h-48 overflow-y-auto text-sm"></div>
     </div>
 
-    <!-- Moon Calculator -->
+    <!-- Moon / Portfolio Calculator -->
     <div class="md:col-span-3 moon-calculator mt-8">
-      <h3 class="text-xl md:text-2xl font-bold text-cyan-400 mb-4">🌕 My XRP Moon Calculator 🌕</h3>
+      <h3 class="text-xl md:text-2xl font-bold text-cyan-400 mb-4">🌕 My <span id="coinName">XRP</span> Calculator 🌕</h3>
 
       <div class="flex flex-wrap gap-8 justify-center items-start mb-6">
         <div class="text-center">
@@ -134,11 +144,11 @@
           <div class="flex items-center gap-2">
             <input type="number" id="myHoldings" value="1000" min="0" step="1"
                    class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
-            <span class="text-sm text-gray-400">XRP</span>
+            <span class="text-sm text-gray-400" id="coinUnit">XRP</span>
           </div>
         </div>
         <div class="text-center">
-          <label class="block text-sm text-gray-400 mb-1">My Moon Price</label>
+          <label class="block text-sm text-gray-400 mb-1">My Target Price</label>
           <div class="flex items-center gap-2">
             <input type="number" id="myMoonPrice" value="100" min="0.01" step="0.01"
                    class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
@@ -152,7 +162,7 @@
 
       <div class="my-moon-bar h-8 bg-slate-800 rounded-full overflow-hidden relative max-w-lg mx-auto mb-3">
         <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400 transition-all duration-700" id="myMoonFill" style="width:2%"></div>
-        <div class="absolute inset-0 flex items-center justify-center text-sm md:text-base font-bold text-white" id="myMoonText">2.0% to your moon!</div>
+        <div class="absolute inset-0 flex items-center justify-center text-sm md:text-base font-bold text-white" id="myMoonText">2.0% to your target!</div>
       </div>
 
       <div class="text-lg md:text-xl font-semibold text-cyan-300 mb-6" id="myMoonMessage">Diamond hands pay off! 💎🙌</div>
@@ -163,11 +173,11 @@
           <div class="text-lg font-bold text-cyan-400" id="myHoldingsDisplay">1,000 XRP</div>
         </div>
         <div class="bg-slate-800/50 rounded-xl p-3">
-          <div class="text-xs text-gray-400">My Moon Price</div>
+          <div class="text-xs text-gray-400">My Target Price</div>
           <div class="text-lg font-bold text-cyan-400" id="myMoonPriceDisplay">$100.00</div>
         </div>
         <div class="bg-slate-800/50 rounded-xl p-3">
-          <div class="text-xs text-gray-400">My Moon Value</div>
+          <div class="text-xs text-gray-400">My Target Value</div>
           <div class="text-lg font-bold text-cyan-400" id="myMoonValue">$100,000.00</div>
         </div>
       </div>
@@ -184,6 +194,8 @@ let currentUSDPrice = 2.02, priceChange24h = 0, fearGreedValue = 50, fearGreedTe
 let rates = {USD:1,AUD:1.46,EUR:0.95,GBP:0.79,JPY:155,CAD:1.39};
 const symbols = {USD:'$',AUD:'A$',EUR:'€',GBP:'£',JPY:'¥',CAD:'C$'};
 let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
+let currentSymbol = localStorage.getItem('cryptoSymbol') || 'XRPUSDT';
+let coinName = currentSymbol.replace('USDT','');
 let previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
 let alertsEnabled = localStorage.getItem('xrpAlerts') === 'true';
 let signalHistory = JSON.parse(localStorage.getItem('xrpSignalHistory') || '[]');
@@ -191,6 +203,7 @@ let klines1h = [], klines4h = [], klines1d = [];
 
 const myHoldingsInput = document.getElementById('myHoldings');
 const myMoonPriceInput = document.getElementById('myMoonPrice');
+const coinSelect = document.getElementById('coinSelect');
 
 function showToast(msg) {
   let t = document.getElementById('toast');
@@ -203,15 +216,15 @@ function requestAlertPermission() {
   Notification.requestPermission().then(p => { if(p==='granted'){alertsEnabled=true;localStorage.setItem('xrpAlerts','true');showToast('Alerts enabled!');} });
 }
 function addToHistory(term, oldS, newS) {
-  const entry = {time:new Date().toLocaleTimeString(), term, oldS, newS};
+  const entry = {time:new Date().toLocaleTimeString(), term, oldS, newS, coin: coinName};
   signalHistory.unshift(entry);
-  if (signalHistory.length > 12) signalHistory.pop();
+  if (signalHistory.length > 15) signalHistory.pop();
   localStorage.setItem('xrpSignalHistory', JSON.stringify(signalHistory));
   renderHistory();
 }
 function renderHistory() {
   const el = document.getElementById('signalHistory');
-  el.innerHTML = signalHistory.map(h => `<div class="history-item text-gray-300">${h.time} • <span class="text-cyan-400">${h.term}</span> ${h.oldS} → <b>${h.newS}</b></div>`).join('') || '<div class="text-gray-500">No changes yet</div>';
+  el.innerHTML = signalHistory.map(h => `<div class="history-item text-gray-300">${h.time} • <span class="text-cyan-400">${h.coin || ''} ${h.term}</span> ${h.oldS} → <b>${h.newS}</b></div>`).join('') || '<div class="text-gray-500">No changes yet</div>';
 }
 function checkSignalChanges(sigs) {
   const labels={short:'Short',med:'Medium',long:'Long'};
@@ -220,8 +233,8 @@ function checkSignalChanges(sigs) {
     if (old !== neu) {
       addToHistory(labels[k], old, neu);
       if (alertsEnabled && Notification.permission==='granted') {
-        new Notification(`XRP ${labels[k]} Signal`, {body:`${old} → ${neu}`, icon:'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png'});
-        showToast(`${labels[k]}: ${old} → ${neu}`);
+        new Notification(`${coinName} ${labels[k]} Signal`, {body:`${old} → ${neu}`});
+        showToast(`${coinName} ${labels[k]}: ${old} → ${neu}`);
       }
     }
     previousSignals[k]=neu;
@@ -254,10 +267,10 @@ function drawSparkline(id, prices) {
 async function fetchData() {
   try {
     const [t, k1, k4, kd] = await Promise.all([
-      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT').then(r=>r.json()),
-      fetch('https://api.binance.com/api/v3/klines?symbol=XRPUSDT&interval=1h&limit=50').then(r=>r.json()),
-      fetch('https://api.binance.com/api/v3/klines?symbol=XRPUSDT&interval=4h&limit=50').then(r=>r.json()),
-      fetch('https://api.binance.com/api/v3/klines?symbol=XRPUSDT&interval=1d&limit=30').then(r=>r.json())
+      fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`).then(r=>r.json()),
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1h&limit=50`).then(r=>r.json()),
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=4h&limit=50`).then(r=>r.json()),
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1d&limit=30`).then(r=>r.json())
     ]);
     currentUSDPrice = parseFloat(t.lastPrice);
     priceChange24h = parseFloat(t.priceChangePercent);
@@ -297,7 +310,7 @@ function generateSignals() {
   else if (rsi4h>65 || change4h<-3) { mSig='SELL/WATCH'; mStr=65; mRat='Extended / caution'; }
   else if (ma7_4h > ma25_4h) { mStr=58; mRat='Uptrend intact'; }
 
-  let lSig='ACCUMULATE', lStr=65, lRat='Long-term utility + adoption';
+  let lSig='ACCUMULATE', lStr=65, lRat='Long-term outlook';
   if (fearGreedValue<30) { lStr=80; lRat+=' • Buy the fear'; }
   else if (fearGreedValue>75) lStr=45;
 
@@ -360,10 +373,13 @@ function updateMoon() {
     sym + moonValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   document.getElementById('myHoldingsDisplay').textContent =
-    holdings.toLocaleString() + ' XRP';
+    holdings.toLocaleString() + ' ' + coinName;
 
   document.getElementById('myMoonPriceDisplay').textContent =
     sym + moonPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  document.getElementById('coinName').textContent = coinName;
+  document.getElementById('coinUnit').textContent = coinName;
 
   const currentPriceInCurrency = currentUSDPrice * rate;
   let progress = 0;
@@ -372,11 +388,11 @@ function updateMoon() {
   }
 
   document.getElementById('myMoonFill').style.width = progress + '%';
-  document.getElementById('myMoonText').textContent = progress.toFixed(1) + '% to your moon!';
+  document.getElementById('myMoonText').textContent = progress.toFixed(1) + '% to your target!';
 
   const msg = document.getElementById('myMoonMessage');
   if (progress >= 100) {
-    msg.textContent = 'YOU MADE IT TO THE MOON!! 🌕🌕🌕';
+    msg.textContent = 'YOU MADE IT!! 🌕🌕🌕';
     if (!window.moonAchievedConfetti) {
       confetti({ particleCount: 400, spread: 90 });
       window.moonAchievedConfetti = true;
@@ -384,7 +400,7 @@ function updateMoon() {
   } else if (progress >= 90) {
     msg.textContent = 'SO CLOSE!! 🌕 Almost there!';
   } else if (progress >= 50) {
-    msg.textContent = 'Halfway to the moon! Keep going! 🚀';
+    msg.textContent = 'Halfway there! Keep going! 🚀';
   } else if (progress >= 20) {
     msg.textContent = 'On your way! 💪';
   } else {
@@ -398,7 +414,7 @@ function loadTradingViewChart(interval) {
   const i=document.createElement('div'); i.className='tradingview-widget-container__widget'; i.style.height='100%';
   w.appendChild(i); c.appendChild(w);
   const s=document.createElement('script'); s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js'; s.async=true;
-  s.innerHTML=JSON.stringify({autosize:true,symbol:"BINANCE:XRPUSDT",interval,timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",backgroundColor:"#111111",gridColor:"#1e293b",withdateranges:true,hide_side_toolbar:false,allow_symbol_change:false,support_host:"https://www.tradingview.com"});
+  s.innerHTML=JSON.stringify({autosize:true,symbol:`BINANCE:${currentSymbol}`,interval,timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",backgroundColor:"#111111",gridColor:"#1e293b",withdateranges:true,hide_side_toolbar:false,allow_symbol_change:false,support_host:"https://www.tradingview.com"});
   i.appendChild(s);
 }
 function showOverlay(iv){loadTradingViewChart(iv);document.getElementById('chartOverlay').classList.add('active');}
@@ -416,6 +432,16 @@ document.getElementById('themeToggle').onclick=()=>{
 };
 document.getElementById('currencySelect').value=currentCurrency;
 document.getElementById('currencySelect').onchange=e=>{currentCurrency=e.target.value;localStorage.setItem('xrpCurrency',currentCurrency);updateAll();};
+
+coinSelect.value = currentSymbol;
+coinSelect.onchange = e => {
+  currentSymbol = e.target.value;
+  coinName = currentSymbol.replace('USDT','');
+  localStorage.setItem('cryptoSymbol', currentSymbol);
+  previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
+  fetchData();
+};
+
 if(localStorage.getItem('myHoldings')) myHoldingsInput.value=localStorage.getItem('myHoldings');
 if(localStorage.getItem('myMoonPrice')) myMoonPriceInput.value=localStorage.getItem('myMoonPrice');
 myHoldingsInput.oninput=()=>{localStorage.setItem('myHoldings',myHoldingsInput.value);updateMoon();};
