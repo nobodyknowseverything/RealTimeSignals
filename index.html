@@ -309,10 +309,36 @@ function setSymbol(sym) {
 }
 
 async function fetchData() {
-  try {
-    let price = null;
-    let change = 0;
+  let price = null;
+  let change = 0;
+  let status = 'Trying CoinGecko...';
 
+  // 1. Prefer CoinGecko (more reliable from browser)
+  const idMap = {
+    XRPUSDT: 'ripple', BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum', SOLUSDT: 'solana',
+    BNBUSDT: 'binancecoin', ADAUSDT: 'cardano', DOGEUSDT: 'dogecoin',
+    AVAXUSDT: 'avalanche-2', XLMUSDT: 'stellar', QNTUSDT: 'quant-network'
+  };
+  const id = idMap[currentSymbol] || 'ripple';
+
+  try {
+    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`);
+    if (r.ok) {
+      const d = await r.json();
+      const coin = d[id];
+      if (coin?.usd) {
+        price = coin.usd;
+        change = coin.usd_24h_change || 0;
+        status = 'CoinGecko OK';
+      }
+    }
+  } catch (e) {
+    console.warn('CoinGecko failed', e);
+    status = 'CoinGecko failed';
+  }
+
+  // 2. Fallback to Binance if CoinGecko failed
+  if (price === null) {
     try {
       const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`);
       if (r.ok) {
@@ -320,62 +346,52 @@ async function fetchData() {
         if (d.lastPrice && !d.code) {
           price = parseFloat(d.lastPrice);
           change = parseFloat(d.priceChangePercent) || 0;
+          status = 'Binance OK';
         }
       }
-    } catch (e) { console.warn('Binance failed', e); }
-
-    if (price === null) {
-      const idMap = { 
-        XRPUSDT: 'ripple', BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum', SOLUSDT: 'solana', 
-        BNBUSDT: 'binancecoin', ADAUSDT: 'cardano', DOGEUSDT: 'dogecoin', 
-        AVAXUSDT: 'avalanche-2', XLMUSDT: 'stellar', QNTUSDT: 'quant-network' 
-      };
-      const id = idMap[currentSymbol] || 'ripple';
-      try {
-        const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`);
-        if (r.ok) {
-          const d = await r.json();
-          const coin = d[id];
-          if (coin?.usd) {
-            price = coin.usd;
-            change = coin.usd_24h_change || 0;
-          }
-        }
-      } catch (ee) { console.warn('CoinGecko fallback failed', ee); }
+    } catch (e) {
+      console.warn('Binance failed', e);
+      status = 'Both failed';
     }
-
-    if (price !== null) {
-      currentUSDPrice = price;
-      priceChange24h = change;
-    }
-
-    const [k1, k4, kd] = await Promise.all([
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1h&limit=50`).then(r => r.json()).catch(()=>[]),
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=4h&limit=50`).then(r => r.json()).catch(()=>[]),
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1d&limit=30`).then(r => r.json()).catch(()=>[])
-    ]);
-    if (Array.isArray(k1)) klines1h = k1.map(c => parseFloat(c[4]));
-    if (Array.isArray(k4)) klines4h = k4.map(c => parseFloat(c[4]));
-    if (Array.isArray(kd)) klines1d = kd.map(c => parseFloat(c[4]));
-
-  } catch (e) {
-    console.warn(e);
-    showToast('Price data temporarily unavailable');
   }
 
+  if (price !== null) {
+    currentUSDPrice = price;
+    priceChange24h = change;
+  } else {
+    showToast('Price fetch failed – check console');
+    console.error('Price fetch failed for', currentSymbol);
+  }
+
+  // Klines (Binance) – wrap in try so they don't kill the price update
+  try {
+    const [k1, k4, kd] = await Promise.all([
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1h&limit=50`).then(r => r.json()).catch(() => []),
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=4h&limit=50`).then(r => r.json()).catch(() => []),
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1d&limit=30`).then(r => r.json()).catch(() => [])
+    ]);
+    if (Array.isArray(k1) && k1.length) klines1h = k1.map(c => parseFloat(c[4]));
+    if (Array.isArray(k4) && k4.length) klines4h = k4.map(c => parseFloat(c[4]));
+    if (Array.isArray(kd) && kd.length) klines1d = kd.map(c => parseFloat(c[4]));
+  } catch (e) {
+    console.warn('Klines failed (signals may be limited)', e);
+  }
+
+  // Fear & Greed
   try {
     const fg = await fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json());
     if (fg.data?.[0]) {
       fearGreedValue = +fg.data[0].value;
-      if (fearGreedValue>=75){fearGreedText='Extreme Greed';fearGreedClass='extreme-bullish';}
-      else if (fearGreedValue>=50){fearGreedText='Greed';fearGreedClass='bullish';}
-      else if (fearGreedValue>=25){fearGreedText='Neutral';fearGreedClass='neutral';}
-      else {fearGreedText='Extreme Fear';fearGreedClass='bearish';}
+      if (fearGreedValue >= 75) { fearGreedText = 'Extreme Greed'; fearGreedClass = 'extreme-bullish'; }
+      else if (fearGreedValue >= 50) { fearGreedText = 'Greed'; fearGreedClass = 'bullish'; }
+      else if (fearGreedValue >= 25) { fearGreedText = 'Neutral'; fearGreedClass = 'neutral'; }
+      else { fearGreedText = 'Extreme Fear'; fearGreedClass = 'bearish'; }
     }
-  } catch(e){}
+  } catch (e) {}
+
+  console.log('Price update:', status, currentUSDPrice, priceChange24h);
   updateAll();
 }
-
 function generateSignals() {
   const rsi1h = calcRSI(klines1h);
   const rsi4h = calcRSI(klines4h);
