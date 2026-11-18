@@ -88,7 +88,7 @@
       <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term</div>
       <div class="pred-body">
         <div class="rocket left">🚀</div>
-        <div class="pred-current"><span id="shortCurrent">$ --</span><span id="shortChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
+        <div class="pred-current"><span id="shortCurrent">Loading...</span><span id="shortChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
         <div class="signal-main" id="shortSignal">HOLD</div>
         <div class="strength-bar"><div class="strength-fill" id="shortStrength" style="width:50%;background:#ffd700"></div></div>
         <div class="text-xs text-gray-400" id="shortStrengthText">Strength: --</div>
@@ -104,7 +104,7 @@
       <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term</div>
       <div class="pred-body">
         <div class="rocket right">🚀</div>
-        <div class="pred-current"><span id="medCurrent">$ --</span><span id="medChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
+        <div class="pred-current"><span id="medCurrent">Loading...</span><span id="medChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
         <div class="signal-main" id="medSignal">HOLD</div>
         <div class="strength-bar"><div class="strength-fill" id="medStrength" style="width:50%;background:#ffd700"></div></div>
         <div class="text-xs text-gray-400" id="medStrengthText">Strength: --</div>
@@ -120,7 +120,7 @@
       <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term</div>
       <div class="pred-body">
         <div class="rocket left">🚀</div>
-        <div class="pred-current"><span id="longCurrent">$ --</span><span id="longChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
+        <div class="pred-current"><span id="longCurrent">Loading...</span><span id="longChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
         <div class="signal-main" id="longSignal">ACCUMULATE</div>
         <div class="strength-bar"><div class="strength-fill" id="longStrength" style="width:60%;background:#00ff9d"></div></div>
         <div class="text-xs text-gray-400" id="longStrengthText">Strength: --</div>
@@ -161,12 +161,12 @@
         </div>
       </div>
 
-      <div class="text-3xl md:text-4xl font-bold text-cyan-400 mb-2" id="myCurrentValue">$2,020.00</div>
+      <div class="text-3xl md:text-4xl font-bold text-cyan-400 mb-2" id="myCurrentValue">Loading...</div>
       <div class="text-sm text-gray-400 mb-4">Current Portfolio Value</div>
 
       <div class="my-moon-bar h-8 bg-slate-800 rounded-full overflow-hidden relative max-w-lg mx-auto mb-3">
-        <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400 transition-all duration-700" id="myMoonFill" style="width:2%"></div>
-        <div class="absolute inset-0 flex items-center justify-center text-sm md:text-base font-bold text-white" id="myMoonText">2.0% to your target!</div>
+        <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400 transition-all duration-700" id="myMoonFill" style="width:0%"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-sm md:text-base font-bold text-white" id="myMoonText">--% to your target!</div>
       </div>
 
       <div class="text-lg md:text-xl font-semibold text-cyan-300 mb-6" id="myMoonMessage">Diamond hands pay off! 💎🙌</div>
@@ -194,7 +194,7 @@
 
 <script>
 const rocketSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-rocket-launch-1668.mp3');
-let currentUSDPrice = 2.02, priceChange24h = 0, fearGreedValue = 50, fearGreedText = 'Neutral', fearGreedClass = 'neutral';
+let currentUSDPrice = null, priceChange24h = 0, fearGreedValue = 50, fearGreedText = 'Neutral', fearGreedClass = 'neutral';
 let rates = {USD:1,AUD:1.46,EUR:0.95,GBP:0.79,JPY:155,CAD:1.39};
 const symbols = {USD:'$',AUD:'A$',EUR:'€',GBP:'£',JPY:'¥',CAD:'C$'};
 let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
@@ -304,29 +304,67 @@ function setSymbol(sym) {
   previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
   document.getElementById('coinName').textContent = coinName;
   document.getElementById('coinUnit').textContent = coinName;
+  currentUSDPrice = null;
   fetchData();
 }
 
 async function fetchData() {
   try {
-    const [t, k1, k4, kd] = await Promise.all([
-      fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`).then(r=>r.json()),
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1h&limit=50`).then(r=>r.json()),
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=4h&limit=50`).then(r=>r.json()),
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1d&limit=30`).then(r=>r.json())
+    let price = null;
+    let change = 0;
+
+    try {
+      const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`);
+      if (r.ok) {
+        const d = await r.json();
+        if (d.lastPrice && !d.code) {
+          price = parseFloat(d.lastPrice);
+          change = parseFloat(d.priceChangePercent) || 0;
+        }
+      }
+    } catch (e) { console.warn('Binance failed', e); }
+
+    if (price === null) {
+      const idMap = { 
+        XRPUSDT: 'ripple', BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum', SOLUSDT: 'solana', 
+        BNBUSDT: 'binancecoin', ADAUSDT: 'cardano', DOGEUSDT: 'dogecoin', 
+        AVAXUSDT: 'avalanche-2', XLMUSDT: 'stellar', QNTUSDT: 'quant-network' 
+      };
+      const id = idMap[currentSymbol] || 'ripple';
+      try {
+        const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`);
+        if (r.ok) {
+          const d = await r.json();
+          const coin = d[id];
+          if (coin?.usd) {
+            price = coin.usd;
+            change = coin.usd_24h_change || 0;
+          }
+        }
+      } catch (ee) { console.warn('CoinGecko fallback failed', ee); }
+    }
+
+    if (price !== null) {
+      currentUSDPrice = price;
+      priceChange24h = change;
+    }
+
+    const [k1, k4, kd] = await Promise.all([
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1h&limit=50`).then(r => r.json()).catch(()=>[]),
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=4h&limit=50`).then(r => r.json()).catch(()=>[]),
+      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1d&limit=30`).then(r => r.json()).catch(()=>[])
     ]);
-    if (t.code) throw new Error(t.msg || 'Invalid symbol');
-    currentUSDPrice = parseFloat(t.lastPrice);
-    priceChange24h = parseFloat(t.priceChangePercent);
-    klines1h = k1.map(c=>parseFloat(c[4]));
-    klines4h = k4.map(c=>parseFloat(c[4]));
-    klines1d = kd.map(c=>parseFloat(c[4]));
-  } catch(e) {
+    if (Array.isArray(k1)) klines1h = k1.map(c => parseFloat(c[4]));
+    if (Array.isArray(k4)) klines4h = k4.map(c => parseFloat(c[4]));
+    if (Array.isArray(kd)) klines1d = kd.map(c => parseFloat(c[4]));
+
+  } catch (e) {
     console.warn(e);
-    showToast('Invalid symbol or no data on Binance');
+    showToast('Price data temporarily unavailable');
   }
+
   try {
-    const fg = await fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json());
+    const fg = await fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json());
     if (fg.data?.[0]) {
       fearGreedValue = +fg.data[0].value;
       if (fearGreedValue>=75){fearGreedText='Extreme Greed';fearGreedClass='extreme-bullish';}
@@ -369,6 +407,14 @@ function generateSignals() {
 }
 
 function updateAll() {
+  if (currentUSDPrice === null) {
+    ['short','med','long'].forEach(term => {
+      document.getElementById(`${term}Current`).textContent = 'Loading...';
+    });
+    document.getElementById('myCurrentValue').textContent = 'Loading...';
+    return;
+  }
+
   const rate=rates[currentCurrency]||1, sym=symbols[currentCurrency]||'$';
   const disp=(currentUSDPrice*rate).toFixed(4);
   const sigs=generateSignals();
@@ -406,6 +452,10 @@ function updateAll() {
 }
 
 function updateMoon() {
+  if (currentUSDPrice === null) {
+    document.getElementById('myCurrentValue').textContent = 'Loading...';
+    return;
+  }
   const holdings = parseFloat(myHoldingsInput.value) || 0;
   const moonPrice = parseFloat(myMoonPriceInput.value) || 0;
   const rate = rates[currentCurrency] || 1;
@@ -511,7 +561,7 @@ myMoonPriceInput.oninput=()=>{localStorage.setItem('myMoonPrice',myMoonPriceInpu
 
 renderHistory();
 fetchData();
-setInterval(fetchData, 20000);
+setInterval(fetchData, 10000);
 </script>
 </body>
 </html>
