@@ -7,73 +7,122 @@
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body{margin:0;background:#000;font-family:system-ui,sans-serif;color:#fff}
+    body{margin:0;background:#000;font-family:system-ui,sans-serif;color:#fff;transition:background .3s,color .3s}
+    html:not(.dark) body{background:#f8fafc;color:#0f172a}
+    .toggle-btn{background:#1f2937;border:none;padding:10px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+    html:not(.dark) .toggle-btn{background:#e2e8f0;color:#0f172a}
+    .icon-moon{display:block}.icon-sun{display:none}
+    html:not(.dark) .icon-moon{display:none}html:not(.dark) .icon-sun{display:block}
+    select{font-size:14px;padding:8px 12px;border-radius:8px;background:#1f2937;color:#fff;border:1px solid #374151}
+    html:not(.dark) select{background:#fff;color:#0f172a;border-color:#cbd5e1}
     .signal-card{border-radius:1rem;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;padding:1.5rem}
+    html:not(.dark) .signal-card{background:linear-gradient(135deg,#ffffff,#f1f5f9);border-color:#e2e8f0}
     .price-up{color:#22c55e}.price-down{color:#ef4444}
     .hold{color:#eab308}.buy{color:#22c55e}.sell{color:#ef4444}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:10000;display:none;align-items:center;justify-content:center}
+    .modal.open{display:flex}
+    .tv-container{width:95%;height:90%;background:#000;border-radius:1rem;overflow:hidden;position:relative}
+    .close-chart{position:absolute;top:12px;right:16px;background:#ef4444;color:white;border:none;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;z-index:10}
   </style>
 </head>
 <body class="min-h-screen">
   <div class="max-w-6xl mx-auto p-4">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">Crypto Signals Tracker</h1>
-      <span class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold">LIVE</span>
+      <div class="flex items-center gap-3">
+        <span class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold">LIVE</span>
+        <select id="currencySelect">
+          <option value="USD">USD</option>
+          <option value="AUD">AUD</option>
+          <option value="EUR">EUR</option>
+          <option value="GBP">GBP</option>
+          <option value="CAD">CAD</option>
+          <option value="JPY">JPY</option>
+        </select>
+        <button class="toggle-btn" id="themeToggle">
+          <svg class="icon-moon w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+          <svg class="icon-sun w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+        </button>
+      </div>
     </div>
 
     <h2 class="text-xl mb-4">Real-Time Signals • RSI + Momentum + Sentiment</h2>
 
     <div class="grid md:grid-cols-3 gap-6 mb-8">
-      <div class="signal-card">
-        <div class="text-sm text-gray-400">Short-Term</div>
+      <div class="signal-card cursor-pointer" onclick="openChart()">
+        <div class="text-sm opacity-70">Short-Term</div>
         <div class="text-4xl my-2" id="shortCurrent">Loading...</div>
         <div class="text-xl font-bold hold" id="shortSignal">HOLD</div>
         <div class="text-sm mt-2">Strength: <span id="shortStrength">--</span></div>
-        <div class="text-xs text-gray-400 mt-2" id="shortReason">Analyzing...</div>
+        <div class="text-xs opacity-70 mt-2" id="shortReason">Analyzing...</div>
       </div>
-      <div class="signal-card">
-        <div class="text-sm text-gray-400">Medium-Term</div>
+      <div class="signal-card cursor-pointer" onclick="openChart()">
+        <div class="text-sm opacity-70">Medium-Term</div>
         <div class="text-4xl my-2" id="medCurrent">Loading...</div>
         <div class="text-xl font-bold hold" id="medSignal">HOLD</div>
         <div class="text-sm mt-2">Strength: <span id="medStrength">--</span></div>
-        <div class="text-xs text-gray-400 mt-2" id="medReason">Analyzing...</div>
+        <div class="text-xs opacity-70 mt-2" id="medReason">Analyzing...</div>
       </div>
-      <div class="signal-card">
-        <div class="text-sm text-gray-400">Long-Term</div>
+      <div class="signal-card cursor-pointer" onclick="openChart()">
+        <div class="text-sm opacity-70">Long-Term</div>
         <div class="text-4xl my-2" id="longCurrent">Loading...</div>
         <div class="text-xl font-bold buy" id="longSignal">ACCUMULATE</div>
         <div class="text-sm mt-2">Strength: <span id="longStrength">--</span></div>
-        <div class="text-xs text-gray-400 mt-2" id="longReason">Analyzing...</div>
+        <div class="text-xs opacity-70 mt-2" id="longReason">Analyzing...</div>
       </div>
     </div>
 
-    <div class="bg-slate-900 rounded-2xl p-6">
+    <div class="bg-slate-900 rounded-2xl p-6" style="background:linear-gradient(135deg,#1e293b,#0f172a)">
       <h3 class="text-xl font-bold mb-4">🌕 My XRP Calculator 🌕</h3>
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label>My Holdings</label>
-          <input id="myHoldings" type="number" value="1000" class="w-full mt-1 p-3 rounded bg-slate-800">
+          <input id="myHoldings" type="number" value="1000" class="w-full mt-1 p-3 rounded bg-slate-800 text-white">
         </div>
         <div>
           <label>My Target Price</label>
-          <input id="myMoonPrice" type="number" value="100" class="w-full mt-1 p-3 rounded bg-slate-800">
+          <input id="myMoonPrice" type="number" value="100" class="w-full mt-1 p-3 rounded bg-slate-800 text-white">
         </div>
       </div>
       <div class="text-center mt-6">
         <div class="text-3xl font-bold" id="portfolioValue">Loading...</div>
-        <div id="moonProgress" class="text-sm text-gray-400"></div>
+        <div id="moonProgress" class="text-sm opacity-70"></div>
         <div class="text-2xl mt-2" id="moonValue"></div>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="chartModal">
+    <div class="tv-container">
+      <button class="close-chart" onclick="closeChart()">×</button>
+      <div id="tradingview_widget" style="width:100%;height:100%"></div>
     </div>
   </div>
 
 <script>
 let currentUSDPrice = null;
 let priceChange24h = 0;
-const rates = { USD: 1 };
+let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
+const rates = { USD:1, AUD:1.52, EUR:0.92, GBP:0.79, CAD:1.36, JPY:149 };
+
+document.getElementById('currencySelect').value = currentCurrency;
+document.getElementById('currencySelect').onchange = e => {
+  currentCurrency = e.target.value;
+  localStorage.setItem('xrpCurrency', currentCurrency);
+  updateAll();
+};
+
+document.getElementById('themeToggle').onclick = () => {
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+};
+if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
 
 function formatPrice(usd) {
   if (!usd) return 'Loading...';
-  return '$' + usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  const val = usd * (rates[currentCurrency] || 1);
+  const symbols = {USD:'$',AUD:'A$',EUR:'€',GBP:'£',CAD:'C$',JPY:'¥'};
+  return (symbols[currentCurrency] || currentCurrency + ' ') + val.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:4});
 }
 
 function updateAll() {
@@ -94,7 +143,6 @@ function updateAll() {
     document.getElementById('moonProgress').textContent = (currentUSDPrice / moon * 100).toFixed(1) + '% to your target!';
   }
 
-  // Simple signal placeholders (you can expand later)
   if (currentUSDPrice) {
     document.getElementById('shortStrength').textContent = '72';
     document.getElementById('medStrength').textContent = '68';
@@ -102,7 +150,7 @@ function updateAll() {
   }
 }
 
-// === EXACT SAME PRICE FUNCTION AS PREDICTION TRACKER ===
+// Exact same price function as Prediction Tracker
 async function updatePriceAndVolume() {
   try {
     const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT');
@@ -115,8 +163,7 @@ async function updatePriceAndVolume() {
         return;
       }
     }
-  } catch (e) {}
-
+  } catch(e){}
   try {
     const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd&include_24hr_change=true');
     if (r.ok) {
@@ -128,9 +175,35 @@ async function updatePriceAndVolume() {
         return;
       }
     }
-  } catch (e) {}
+  } catch(e){}
   updateAll();
 }
+
+function openChart() {
+  document.getElementById('chartModal').classList.add('open');
+  if (!window.TradingView) {
+    const s = document.createElement('script');
+    s.src = 'https://s3.tradingview.com/tv.js';
+    s.onload = () => new TradingView.widget({
+      autosize: true,
+      symbol: "BINANCE:XRPUSDT",
+      interval: "D",
+      timezone: "Etc/UTC",
+      theme: document.documentElement.classList.contains('dark') ? "dark" : "light",
+      style: "1",
+      locale: "en",
+      enable_publishing: false,
+      hide_side_toolbar: false,
+      allow_symbol_change: true,
+      container_id: "tradingview_widget"
+    });
+    document.head.appendChild(s);
+  }
+}
+function closeChart() {
+  document.getElementById('chartModal').classList.remove('open');
+}
+document.getElementById('chartModal').onclick = e => { if (e.target.id === 'chartModal') closeChart(); };
 
 document.getElementById('myHoldings').oninput = updateAll;
 document.getElementById('myMoonPrice').oninput = updateAll;
@@ -140,9 +213,3 @@ setInterval(updatePriceAndVolume, 10000);
 </script>
 </body>
 </html>
-
-
-
-
-
-2 sources
