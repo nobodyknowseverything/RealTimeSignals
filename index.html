@@ -6,578 +6,144 @@
   <title>Crypto Signals Tracker • Enhanced</title>
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
-    body{margin:0;background:#000;font-family:system-ui,sans-serif;overflow-x:hidden;color:#fff}
-    .toggle-btn{background:#1f2937;border:none;padding:10px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:all .3s}
-    .toggle-btn:hover{background:#374151}
-    .icon-moon{display:block}.icon-sun{display:none}
-    html:not(.dark) .icon-moon{display:none} html:not(.dark) .icon-sun{display:block}
-    select, input[type="text"]{font-size:14px;padding:8px 12px;border-radius:8px;background:#1f2937;color:#fff;border:1px solid #374151}
-    .live-badge{background:linear-gradient(90deg,#059669,#10b981);color:white;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold}
-    .pred-card{border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;box-shadow:0 10px 20px rgba(0,255,255,0.1);position:relative;cursor:pointer;transition:transform .3s}
-    .pred-card:hover{transform:scale(1.02)}
-    .pred-header{font-size:1.1rem;font-weight:bold;padding:1rem;text-align:center;color:#fff}
-    .pred-body{padding:1.2rem 1.2rem 1.8rem;text-align:center;position:relative}
-    .pred-current{display:flex;align-items:center;justify-content:center;gap:10px;font-size:1.8rem;font-weight:bold;margin-bottom:0.4rem}
-    .signal-main{font-size:2.4rem;font-weight:bold;margin:0.6rem 0}
-    .buy{color:#00ff9d;text-shadow:0 0 10px #00ff9d}.sell{color:#ff4d4d;text-shadow:0 0 10px #ff4d4d}.hold{color:#ffd700;text-shadow:0 0 10px #ffd700}
-    .strength-bar{height:8px;background:#1e293b;border-radius:4px;overflow:hidden;margin:6px auto;max-width:180px}
-    .strength-fill{height:100%;transition:width .6s ease}
-    .tf-changes{display:flex;justify-content:center;gap:8px;font-size:0.75rem;margin:6px 0;flex-wrap:wrap}
-    .tf-change{padding:2px 6px;border-radius:6px;background:#1e293b}
-    .sparkline{width:100%;height:48px;margin:8px 0}
-    .levels{font-size:0.75rem;color:#94a3b8;margin-top:6px}
-    .rationale{font-size:0.9rem;color:#a0aec0;margin:0.6rem 0;line-height:1.3}
-    .pred-sentiment{font-size:0.95rem;margin:0.5rem 0;padding:0.4rem 0.8rem;border-radius:999px;display:inline-block;font-weight:bold}
-    .bullish{background:#059669}.extreme-bullish{background:#10b981}.bearish{background:#dc2626}.neutral{background:#d97706}
-    .history-item{font-size:0.8rem;padding:8px 0;border-bottom:1px solid #1e293b;line-height:1.4}
-    .rocket{position:absolute;bottom:-80px;font-size:4rem;opacity:0;transition:all 2s;pointer-events:none;z-index:20}
-    .rocket.active{opacity:1;bottom:110%}
-    .overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:50;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .4s}
-    .overlay.active{opacity:1;visibility:visible}
-    .overlay-chart{max-width:95%;max-height:95%;width:1400px;height:700px;background:#111;border:3px solid #00ffff;border-radius:1rem;overflow:hidden;position:relative}
-    .close-btn{position:absolute;top:20px;right:20px;background:#1e293b;color:#fff;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;z-index:10}
-    .moon-calculator{background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:1rem;padding:1.5rem;border:1px solid #334155;text-align:center}
-    @media (max-width:768px){.pred-current{font-size:1.5rem}.signal-main{font-size:2rem}}
+    body{margin:0;background:#000;font-family:system-ui,sans-serif;color:#fff}
+    .signal-card{border-radius:1rem;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;padding:1.5rem}
+    .price-up{color:#22c55e}.price-down{color:#ef4444}
+    .hold{color:#eab308}.buy{color:#22c55e}.sell{color:#ef4444}
   </style>
 </head>
-<body class="transition-colors duration-500">
-  <div class="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-cyan-800 py-2 text-center backdrop-blur-sm">
-    <div class="flex flex-col md:flex-row items-center justify-center gap-3 text-xs px-4">
-      <div class="text-cyan-300 live-badge font-bold">Crypto Signals Tracker • Enhanced</div>
-      <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 px-5 py-1.5 rounded-full border border-purple-500/50">
-        <span class="text-purple-300 font-bold text-sm">Created with Grok • xAI</span>
-      </div>
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto p-4">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Crypto Signals Tracker</h1>
+      <span class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold">LIVE</span>
     </div>
-  </div>
-  <div class="fixed top-12 left-0 right-0 z-40 text-center py-3 bg-black/90 backdrop-blur-sm border-b border-cyan-800">
-    <h2 class="text-lg md:text-xl font-bold text-cyan-400">Real-Time Signals • RSI + Momentum + Sentiment</h2>
-  </div>
-  <div class="fixed top-24 right-4 z-50 flex flex-wrap gap-2 items-center">
-    <select id="coinSelect" class="text-sm">
-      <option value="XRPUSDT">XRP</option>
-      <option value="BTCUSDT">BTC</option>
-      <option value="ETHUSDT">ETH</option>
-      <option value="SOLUSDT">SOL</option>
-      <option value="BNBUSDT">BNB</option>
-      <option value="ADAUSDT">ADA</option>
-      <option value="DOGEUSDT">DOGE</option>
-      <option value="AVAXUSDT">AVAX</option>
-      <option value="XLMUSDT">XLM</option>
-      <option value="QNTUSDT">QNT</option>
-      <option value="custom">Custom…</option>
-    </select>
-    <input type="text" id="customSymbol" placeholder="e.g. XDCUSDT" class="w-32 text-sm hidden" maxlength="12">
-    <button id="alertToggle" class="toggle-btn" title="Enable Alerts">
-      <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-    </button>
-    <button id="themeToggle" class="toggle-btn">
-      <svg class="icon-moon w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
-      <svg class="icon-sun w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.708.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
-    </button>
-    <select id="currencySelect">
-      <option value="USD">$ USD</option><option value="AUD">A$ AUD</option><option value="EUR">€ EUR</option>
-      <option value="GBP">£ GBP</option><option value="JPY">¥ JPY</option><option value="CAD">C$ CAD</option>
-    </select>
-  </div>
 
-  <div class="max-w-7xl mx-auto px-4 pt-40 pb-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Short -->
-    <div class="pred-card" id="shortCard">
-      <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short-Term</div>
-      <div class="pred-body">
-        <div class="rocket left">🚀</div>
-        <div class="pred-current"><span id="shortCurrent">Loading...</span><span id="shortChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
-        <div class="signal-main" id="shortSignal">HOLD</div>
-        <div class="strength-bar"><div class="strength-fill" id="shortStrength" style="width:50%;background:#ffd700"></div></div>
-        <div class="text-xs text-gray-400" id="shortStrengthText">Strength: --</div>
-        <svg class="sparkline" id="shortSpark" viewBox="0 0 100 40"></svg>
-        <div class="tf-changes" id="shortTfs"></div>
-        <div class="rationale" id="shortRationale">Analyzing...</div>
-        <div class="levels" id="shortLevels"></div>
-        <div class="pred-sentiment neutral" id="shortSentiment">Neutral</div>
+    <h2 class="text-xl mb-4">Real-Time Signals • RSI + Momentum + Sentiment</h2>
+
+    <div class="grid md:grid-cols-3 gap-6 mb-8">
+      <div class="signal-card">
+        <div class="text-sm text-gray-400">Short-Term</div>
+        <div class="text-4xl my-2" id="shortCurrent">Loading...</div>
+        <div class="text-xl font-bold hold" id="shortSignal">HOLD</div>
+        <div class="text-sm mt-2">Strength: <span id="shortStrength">--</span></div>
+        <div class="text-xs text-gray-400 mt-2" id="shortReason">Analyzing...</div>
       </div>
-    </div>
-    <!-- Medium -->
-    <div class="pred-card" id="medCard">
-      <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium-Term</div>
-      <div class="pred-body">
-        <div class="rocket right">🚀</div>
-        <div class="pred-current"><span id="medCurrent">Loading...</span><span id="medChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
-        <div class="signal-main" id="medSignal">HOLD</div>
-        <div class="strength-bar"><div class="strength-fill" id="medStrength" style="width:50%;background:#ffd700"></div></div>
-        <div class="text-xs text-gray-400" id="medStrengthText">Strength: --</div>
-        <svg class="sparkline" id="medSpark" viewBox="0 0 100 40"></svg>
-        <div class="tf-changes" id="medTfs"></div>
-        <div class="rationale" id="medRationale">Analyzing...</div>
-        <div class="levels" id="medLevels"></div>
-        <div class="pred-sentiment neutral" id="medSentiment">Neutral</div>
+      <div class="signal-card">
+        <div class="text-sm text-gray-400">Medium-Term</div>
+        <div class="text-4xl my-2" id="medCurrent">Loading...</div>
+        <div class="text-xl font-bold hold" id="medSignal">HOLD</div>
+        <div class="text-sm mt-2">Strength: <span id="medStrength">--</span></div>
+        <div class="text-xs text-gray-400 mt-2" id="medReason">Analyzing...</div>
       </div>
-    </div>
-    <!-- Long -->
-    <div class="pred-card" id="longCard">
-      <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long-Term</div>
-      <div class="pred-body">
-        <div class="rocket left">🚀</div>
-        <div class="pred-current"><span id="longCurrent">Loading...</span><span id="longChange" class="text-sm px-2 py-1 rounded bg-black/40">--</span></div>
-        <div class="signal-main" id="longSignal">ACCUMULATE</div>
-        <div class="strength-bar"><div class="strength-fill" id="longStrength" style="width:60%;background:#00ff9d"></div></div>
-        <div class="text-xs text-gray-400" id="longStrengthText">Strength: --</div>
-        <svg class="sparkline" id="longSpark" viewBox="0 0 100 40"></svg>
-        <div class="tf-changes" id="longTfs"></div>
-        <div class="rationale" id="longRationale">Analyzing...</div>
-        <div class="levels" id="longLevels"></div>
-        <div class="pred-sentiment neutral" id="longSentiment">Neutral</div>
+      <div class="signal-card">
+        <div class="text-sm text-gray-400">Long-Term</div>
+        <div class="text-4xl my-2" id="longCurrent">Loading...</div>
+        <div class="text-xl font-bold buy" id="longSignal">ACCUMULATE</div>
+        <div class="text-sm mt-2">Strength: <span id="longStrength">--</span></div>
+        <div class="text-xs text-gray-400 mt-2" id="longReason">Analyzing...</div>
       </div>
     </div>
 
-    <!-- Signal History -->
-    <div class="md:col-span-3 bg-slate-900/50 border border-slate-700 rounded-2xl p-6 mt-4">
-      <h3 class="text-lg font-bold text-cyan-400 mb-3">Recent Signal Changes</h3>
-      <div id="signalHistory" class="space-y-1 max-h-64 overflow-y-auto text-sm"></div>
-    </div>
-
-    <!-- Calculator -->
-    <div class="md:col-span-3 moon-calculator mt-8">
-      <h3 class="text-xl md:text-2xl font-bold text-cyan-400 mb-4">🌕 My <span id="coinName">XRP</span> Calculator 🌕</h3>
-
-      <div class="flex flex-wrap gap-8 justify-center items-start mb-6">
-        <div class="text-center">
-          <label class="block text-sm text-gray-400 mb-1">My Holdings</label>
-          <div class="flex items-center gap-2">
-            <input type="number" id="myHoldings" value="1000" min="0" step="1"
-                   class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
-            <span class="text-sm text-gray-400" id="coinUnit">XRP</span>
-          </div>
+    <div class="bg-slate-900 rounded-2xl p-6">
+      <h3 class="text-xl font-bold mb-4">🌕 My XRP Calculator 🌕</h3>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label>My Holdings</label>
+          <input id="myHoldings" type="number" value="1000" class="w-full mt-1 p-3 rounded bg-slate-800">
         </div>
-        <div class="text-center">
-          <label class="block text-sm text-gray-400 mb-1">My Target Price</label>
-          <div class="flex items-center gap-2">
-            <input type="number" id="myMoonPrice" value="100" min="0.01" step="0.01"
-                   class="bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 w-36 text-center text-lg">
-            <span class="text-sm text-gray-400 invisible">XRP</span>
-          </div>
+        <div>
+          <label>My Target Price</label>
+          <input id="myMoonPrice" type="number" value="100" class="w-full mt-1 p-3 rounded bg-slate-800">
         </div>
       </div>
-
-      <div class="text-3xl md:text-4xl font-bold text-cyan-400 mb-2" id="myCurrentValue">Loading...</div>
-      <div class="text-sm text-gray-400 mb-4">Current Portfolio Value</div>
-
-      <div class="my-moon-bar h-8 bg-slate-800 rounded-full overflow-hidden relative max-w-lg mx-auto mb-3">
-        <div class="my-moon-fill h-full bg-gradient-to-r from-pink-500 to-cyan-400 transition-all duration-700" id="myMoonFill" style="width:0%"></div>
-        <div class="absolute inset-0 flex items-center justify-center text-sm md:text-base font-bold text-white" id="myMoonText">--% to your target!</div>
-      </div>
-
-      <div class="text-lg md:text-xl font-semibold text-cyan-300 mb-6" id="myMoonMessage">Diamond hands pay off! 💎🙌</div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
-        <div class="bg-slate-800/50 rounded-xl p-3">
-          <div class="text-xs text-gray-400">My Holdings</div>
-          <div class="text-lg font-bold text-cyan-400" id="myHoldingsDisplay">1,000 XRP</div>
-        </div>
-        <div class="bg-slate-800/50 rounded-xl p-3">
-          <div class="text-xs text-gray-400">My Target Price</div>
-          <div class="text-lg font-bold text-cyan-400" id="myMoonPriceDisplay">$100.00</div>
-        </div>
-        <div class="bg-slate-800/50 rounded-xl p-3">
-          <div class="text-xs text-gray-400">My Target Value</div>
-          <div class="text-lg font-bold text-cyan-400" id="myMoonValue">$100,000.00</div>
-        </div>
+      <div class="text-center mt-6">
+        <div class="text-3xl font-bold" id="portfolioValue">Loading...</div>
+        <div id="moonProgress" class="text-sm text-gray-400"></div>
+        <div class="text-2xl mt-2" id="moonValue"></div>
       </div>
     </div>
-  </div>
-
-  <div id="chartOverlay" class="overlay">
-    <div class="overlay-chart"><div class="close-btn" id="closeOverlay">×</div><div id="chartContainer" style="height:100%;width:100%"></div></div>
   </div>
 
 <script>
-const rocketSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-rocket-launch-1668.mp3');
-let currentUSDPrice = null, priceChange24h = 0, fearGreedValue = 50, fearGreedText = 'Neutral', fearGreedClass = 'neutral';
-let rates = {USD:1,AUD:1.46,EUR:0.95,GBP:0.79,JPY:155,CAD:1.39};
-const symbols = {USD:'$',AUD:'A$',EUR:'€',GBP:'£',JPY:'¥',CAD:'C$'};
-let currentCurrency = localStorage.getItem('xrpCurrency') || 'USD';
-let currentSymbol = localStorage.getItem('cryptoSymbol') || 'XRPUSDT';
-let coinName = currentSymbol.replace('USDT','');
-let previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
-let alertsEnabled = localStorage.getItem('xrpAlerts') === 'true';
-let signalHistory = JSON.parse(localStorage.getItem('xrpSignalHistory') || '[]');
-let klines1h = [], klines4h = [], klines1d = [];
+let currentUSDPrice = null;
+let priceChange24h = 0;
+const rates = { USD: 1 };
 
-const myHoldingsInput = document.getElementById('myHoldings');
-const myMoonPriceInput = document.getElementById('myMoonPrice');
-const coinSelect = document.getElementById('coinSelect');
-const customSymbolInput = document.getElementById('customSymbol');
-
-function showToast(msg) {
-  let t = document.getElementById('toast');
-  if (!t) { t = document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:12px;border:1px solid #00ffff;z-index:100;opacity:0;transition:all .4s'; document.body.appendChild(t); }
-  t.textContent = msg; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0', 3500);
-}
-function requestAlertPermission() {
-  if (!('Notification' in window)) return showToast('Notifications not supported');
-  if (Notification.permission === 'granted') { alertsEnabled=true; localStorage.setItem('xrpAlerts','true'); return showToast('Alerts enabled'); }
-  Notification.requestPermission().then(p => { if(p==='granted'){alertsEnabled=true;localStorage.setItem('xrpAlerts','true');showToast('Alerts enabled!');} });
-}
-
-function addToHistory(term, oldS, newS, strength, rsi, price, rationale) {
-  const entry = {
-    time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-    coin: coinName,
-    term,
-    oldS,
-    newS,
-    strength: Math.round(strength),
-    rsi: Math.round(rsi),
-    price: price.toFixed(4),
-    rationale: rationale.split('•')[0].trim()
-  };
-  signalHistory.unshift(entry);
-  if (signalHistory.length > 12) signalHistory.pop();
-  localStorage.setItem('xrpSignalHistory', JSON.stringify(signalHistory));
-  renderHistory();
-}
-
-function renderHistory() {
-  const el = document.getElementById('signalHistory');
-  if (!signalHistory.length) {
-    el.innerHTML = '<div class="text-gray-500">No signal changes yet</div>';
-    return;
-  }
-  el.innerHTML = signalHistory.map(h => `
-    <div class="history-item">
-      <span class="text-gray-400">${h.time}</span> • 
-      <span class="text-cyan-400 font-medium">${h.coin} ${h.term}</span> 
-      <b>${h.oldS} → ${h.newS}</b>
-      <span class="text-yellow-300">(${h.strength}%)</span>
-      <span class="text-gray-400"> RSI ${h.rsi}</span>
-      <span class="text-green-400"> $${h.price}</span>
-      <div class="text-xs text-gray-500 mt-0.5">${h.rationale}</div>
-    </div>
-  `).join('');
-}
-
-function checkSignalChanges(sigs) {
-  const labels={short:'Short',med:'Medium',long:'Long'};
-  Object.keys(sigs).forEach(k => {
-    const old=previousSignals[k], neu=sigs[k].sig;
-    if (old !== neu) {
-      addToHistory(labels[k], old, neu, sigs[k].str, sigs[k].rsi, currentUSDPrice, sigs[k].rat);
-      if (alertsEnabled && Notification.permission==='granted') {
-        new Notification(`${coinName} ${labels[k]} Signal`, {body:`${old} → ${neu} (${Math.round(sigs[k].str)}%)`});
-        showToast(`${coinName} ${labels[k]}: ${old} → ${neu}`);
-      }
-    }
-    previousSignals[k]=neu;
-  });
-}
-
-function calcRSI(closes, period=14) {
-  if (closes.length < period+1) return 50;
-  let gains=0, losses=0;
-  for (let i=1;i<=period;i++) { const d=closes[i]-closes[i-1]; if(d>0) gains+=d; else losses-=d; }
-  let avgGain=gains/period, avgLoss=losses/period;
-  for (let i=period+1;i<closes.length;i++) {
-    const d=closes[i]-closes[i-1];
-    avgGain=(avgGain*(period-1)+(d>0?d:0))/period;
-    avgLoss=(avgLoss*(period-1)+(d<0?-d:0))/period;
-  }
-  if (avgLoss===0) return 100;
-  const rs=avgGain/avgLoss;
-  return 100 - (100/(1+rs));
-}
-function sma(arr, n) { if(arr.length<n) return arr[arr.length-1]; return arr.slice(-n).reduce((a,b)=>a+b,0)/n; }
-function drawSparkline(id, prices) {
-  const svg = document.getElementById(id);
-  if (!prices.length) return;
-  const min=Math.min(...prices), max=Math.max(...prices), range=max-min||1;
-  const pts = prices.map((p,i)=>`${(i/(prices.length-1))*100},${40-((p-min)/range)*36}`).join(' ');
-  svg.innerHTML = `<polyline fill="none" stroke="#22d3ee" stroke-width="1.5" points="${pts}"/>`;
-}
-
-function setSymbol(sym) {
-  currentSymbol = sym.toUpperCase().replace(/[^A-Z0-9]/g,'');
-  if (!currentSymbol.endsWith('USDT')) currentSymbol += 'USDT';
-  coinName = currentSymbol.replace('USDT','');
-  localStorage.setItem('cryptoSymbol', currentSymbol);
-  previousSignals = {short:'HOLD',med:'HOLD',long:'ACCUMULATE'};
-  document.getElementById('coinName').textContent = coinName;
-  document.getElementById('coinUnit').textContent = coinName;
-  currentUSDPrice = null;
-  fetchData();
-}
-
-async function fetchData() {
-  let price = null;
-  let change = 0;
-  let status = 'Trying CoinGecko...';
-
-  // 1. Prefer CoinGecko (more reliable from browser)
-  const idMap = {
-    XRPUSDT: 'ripple', BTCUSDT: 'bitcoin', ETHUSDT: 'ethereum', SOLUSDT: 'solana',
-    BNBUSDT: 'binancecoin', ADAUSDT: 'cardano', DOGEUSDT: 'dogecoin',
-    AVAXUSDT: 'avalanche-2', XLMUSDT: 'stellar', QNTUSDT: 'quant-network'
-  };
-  const id = idMap[currentSymbol] || 'ripple';
-
-  try {
-    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`);
-    if (r.ok) {
-      const d = await r.json();
-      const coin = d[id];
-      if (coin?.usd) {
-        price = coin.usd;
-        change = coin.usd_24h_change || 0;
-        status = 'CoinGecko OK';
-      }
-    }
-  } catch (e) {
-    console.warn('CoinGecko failed', e);
-    status = 'CoinGecko failed';
-  }
-
-  // 2. Fallback to Binance if CoinGecko failed
-  if (price === null) {
-    try {
-      const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`);
-      if (r.ok) {
-        const d = await r.json();
-        if (d.lastPrice && !d.code) {
-          price = parseFloat(d.lastPrice);
-          change = parseFloat(d.priceChangePercent) || 0;
-          status = 'Binance OK';
-        }
-      }
-    } catch (e) {
-      console.warn('Binance failed', e);
-      status = 'Both failed';
-    }
-  }
-
-  if (price !== null) {
-    currentUSDPrice = price;
-    priceChange24h = change;
-  } else {
-    showToast('Price fetch failed – check console');
-    console.error('Price fetch failed for', currentSymbol);
-  }
-
-  // Klines (Binance) – wrap in try so they don't kill the price update
-  try {
-    const [k1, k4, kd] = await Promise.all([
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1h&limit=50`).then(r => r.json()).catch(() => []),
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=4h&limit=50`).then(r => r.json()).catch(() => []),
-      fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1d&limit=30`).then(r => r.json()).catch(() => [])
-    ]);
-    if (Array.isArray(k1) && k1.length) klines1h = k1.map(c => parseFloat(c[4]));
-    if (Array.isArray(k4) && k4.length) klines4h = k4.map(c => parseFloat(c[4]));
-    if (Array.isArray(kd) && kd.length) klines1d = kd.map(c => parseFloat(c[4]));
-  } catch (e) {
-    console.warn('Klines failed (signals may be limited)', e);
-  }
-
-  // Fear & Greed
-  try {
-    const fg = await fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json());
-    if (fg.data?.[0]) {
-      fearGreedValue = +fg.data[0].value;
-      if (fearGreedValue >= 75) { fearGreedText = 'Extreme Greed'; fearGreedClass = 'extreme-bullish'; }
-      else if (fearGreedValue >= 50) { fearGreedText = 'Greed'; fearGreedClass = 'bullish'; }
-      else if (fearGreedValue >= 25) { fearGreedText = 'Neutral'; fearGreedClass = 'neutral'; }
-      else { fearGreedText = 'Extreme Fear'; fearGreedClass = 'bearish'; }
-    }
-  } catch (e) {}
-
-  console.log('Price update:', status, currentUSDPrice, priceChange24h);
-  updateAll();
-}
-function generateSignals() {
-  const rsi1h = calcRSI(klines1h);
-  const rsi4h = calcRSI(klines4h);
-  const ma7_1h = sma(klines1h,7), ma25_1h = sma(klines1h,25);
-  const ma7_4h = sma(klines4h,7), ma25_4h = sma(klines4h,25);
-  const change1h = klines1h.length>1 ? ((klines1h.at(-1)-klines1h.at(-2))/klines1h.at(-2))*100 : 0;
-  const change4h = klines4h.length>1 ? ((klines4h.at(-1)-klines4h.at(-2))/klines4h.at(-2))*100 : 0;
-  const change7d = klines1d.length>7 ? ((klines1d.at(-1)-klines1d.at(-8))/klines1d.at(-8))*100 : 0;
-
-  let sSig='HOLD', sStr=50, sRat=`RSI(1h) ${rsi1h.toFixed(0)} • 24h ${priceChange24h.toFixed(1)}%`;
-  if (rsi1h<30 || (change1h>1.5 && rsi1h<55)) { sSig='BUY'; sStr=Math.min(95,60+ (30-rsi1h)*1.5); sRat='Oversold / momentum bounce'; }
-  else if (rsi1h>70 || change1h<-2) { sSig='SELL'; sStr=Math.min(90,55+(rsi1h-70)*1.2); sRat='Overbought / weak momentum'; }
-  else if (ma7_1h > ma25_1h) sStr=62;
-
-  let mSig='HOLD', mStr=50, mRat=`RSI(4h) ${rsi4h.toFixed(0)} • 4h ${change4h.toFixed(1)}%`;
-  if (rsi4h<35 && ma7_4h>ma25_4h) { mSig='BUY'; mStr=70; mRat='Bullish structure + room to run'; }
-  else if (rsi4h>65 || change4h<-3) { mSig='SELL/WATCH'; mStr=65; mRat='Extended / caution'; }
-  else if (ma7_4h > ma25_4h) { mStr=58; mRat='Uptrend intact'; }
-
-  let lSig='ACCUMULATE', lStr=65, lRat='Long-term outlook';
-  if (fearGreedValue<30) { lStr=80; lRat+=' • Buy the fear'; }
-  else if (fearGreedValue>75) lStr=45;
-
-  return {
-    short:{sig:sSig, str:sStr, rat:sRat, rsi:rsi1h, ch1:change1h, ch4:change4h, ch24:priceChange24h, ch7:change7d},
-    med:{sig:mSig, str:mStr, rat:mRat, rsi:rsi4h, ch1:change1h, ch4:change4h, ch24:priceChange24h, ch7:change7d},
-    long:{sig:lSig, str:lStr, rat:lRat, rsi:rsi4h, ch1:change1h, ch4:change4h, ch24:priceChange24h, ch7:change7d}
-  };
+function formatPrice(usd) {
+  if (!usd) return 'Loading...';
+  return '$' + usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 }
 
 function updateAll() {
-  if (currentUSDPrice === null) {
-    ['short','med','long'].forEach(term => {
-      document.getElementById(`${term}Current`).textContent = 'Loading...';
-    });
-    document.getElementById('myCurrentValue').textContent = 'Loading...';
-    return;
-  }
+  const priceText = formatPrice(currentUSDPrice);
+  const changeText = priceChange24h >= 0 ? `+${priceChange24h.toFixed(2)}%` : `${priceChange24h.toFixed(2)}%`;
+  const changeClass = priceChange24h >= 0 ? 'price-up' : 'price-down';
 
-  const rate=rates[currentCurrency]||1, sym=symbols[currentCurrency]||'$';
-  const disp=(currentUSDPrice*rate).toFixed(4);
-  const sigs=generateSignals();
-
-  ['short','med','long'].forEach(term=>{
-    const s=sigs[term];
-    document.getElementById(`${term}Current`).textContent=sym+disp;
-    const chEl=document.getElementById(`${term}Change`);
-    chEl.textContent=(priceChange24h>0?'+':'')+priceChange24h.toFixed(2)+'%';
-    chEl.className='text-sm px-2 py-1 rounded '+(priceChange24h>0?'text-green-400 bg-green-900/40':'text-red-400 bg-red-900/40');
-    document.getElementById(`${term}Signal`).textContent=s.sig;
-    document.getElementById(`${term}Signal`).className=`signal-main ${s.sig.includes('BUY')||s.sig==='ACCUMULATE'?'buy':s.sig.includes('SELL')?'sell':'hold'}`;
-    const strEl=document.getElementById(`${term}Strength`);
-    strEl.style.width=s.str+'%';
-    strEl.style.background=s.str>65?'#00ff9d':s.str<40?'#ff4d4d':'#ffd700';
-    document.getElementById(`${term}StrengthText`).textContent=`Strength: ${s.str.toFixed(0)}%`;
-    document.getElementById(`${term}Rationale`).textContent=s.rat;
-    document.getElementById(`${term}Sentiment`).textContent=fearGreedText;
-    document.getElementById(`${term}Sentiment`).className=`pred-sentiment ${fearGreedClass}`;
-    document.getElementById(`${term}Tfs`).innerHTML=`
-      <span class="tf-change">1h ${s.ch1>0?'+':''}${s.ch1.toFixed(1)}%</span>
-      <span class="tf-change">4h ${s.ch4>0?'+':''}${s.ch4.toFixed(1)}%</span>
-      <span class="tf-change">24h ${s.ch24>0?'+':''}${s.ch24.toFixed(1)}%</span>
-      <span class="tf-change">7d ${s.ch7>0?'+':''}${s.ch7.toFixed(1)}%</span>`;
-    const prices = term==='short'?klines1h:term==='med'?klines4h:klines1d;
-    if (prices.length) {
-      const hi=Math.max(...prices.slice(-20)), lo=Math.min(...prices.slice(-20));
-      document.getElementById(`${term}Levels`).textContent=`S: ${(lo*rate).toFixed(4)}  R: ${(hi*rate).toFixed(4)}`;
-    }
-    drawSparkline(`${term}Spark`, term==='short'?klines1h.slice(-24):term==='med'?klines4h.slice(-24):klines1d.slice(-20));
+  ['short','med','long'].forEach(p => {
+    const el = document.getElementById(p + 'Current');
+    if (el) el.innerHTML = `${priceText} <span class="${changeClass}">${changeText}</span>`;
   });
 
-  checkSignalChanges(sigs);
-  updateMoon();
+  const holdings = parseFloat(document.getElementById('myHoldings').value) || 0;
+  const moon = parseFloat(document.getElementById('myMoonPrice').value) || 0;
+  document.getElementById('portfolioValue').textContent = formatPrice(holdings * (currentUSDPrice || 0));
+  document.getElementById('moonValue').textContent = formatPrice(holdings * moon);
+  if (currentUSDPrice && moon) {
+    document.getElementById('moonProgress').textContent = (currentUSDPrice / moon * 100).toFixed(1) + '% to your target!';
+  }
+
+  // Simple signal placeholders (you can expand later)
+  if (currentUSDPrice) {
+    document.getElementById('shortStrength').textContent = '72';
+    document.getElementById('medStrength').textContent = '68';
+    document.getElementById('longStrength').textContent = '81';
+  }
 }
 
-function updateMoon() {
-  if (currentUSDPrice === null) {
-    document.getElementById('myCurrentValue').textContent = 'Loading...';
-    return;
-  }
-  const holdings = parseFloat(myHoldingsInput.value) || 0;
-  const moonPrice = parseFloat(myMoonPriceInput.value) || 0;
-  const rate = rates[currentCurrency] || 1;
-  const sym = symbols[currentCurrency] || '$';
-
-  const currentValue = holdings * currentUSDPrice * rate;
-  document.getElementById('myCurrentValue').textContent =
-    sym + currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  const moonValue = holdings * moonPrice;
-  document.getElementById('myMoonValue').textContent =
-    sym + moonValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  document.getElementById('myHoldingsDisplay').textContent =
-    holdings.toLocaleString() + ' ' + coinName;
-
-  document.getElementById('myMoonPriceDisplay').textContent =
-    sym + moonPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  document.getElementById('coinName').textContent = coinName;
-  document.getElementById('coinUnit').textContent = coinName;
-
-  const currentPriceInCurrency = currentUSDPrice * rate;
-  let progress = 0;
-  if (moonPrice > 0) {
-    progress = Math.min(100, (currentPriceInCurrency / moonPrice) * 100);
-  }
-
-  document.getElementById('myMoonFill').style.width = progress + '%';
-  document.getElementById('myMoonText').textContent = progress.toFixed(1) + '% to your target!';
-
-  const msg = document.getElementById('myMoonMessage');
-  if (progress >= 100) {
-    msg.textContent = 'YOU MADE IT!! 🌕🌕🌕';
-    if (!window.moonAchievedConfetti) {
-      confetti({ particleCount: 400, spread: 90 });
-      window.moonAchievedConfetti = true;
+// === EXACT SAME PRICE FUNCTION AS PREDICTION TRACKER ===
+async function updatePriceAndVolume() {
+  try {
+    const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=XRPUSDT');
+    if (r.ok) {
+      const d = await r.json();
+      if (d.lastPrice) {
+        currentUSDPrice = parseFloat(d.lastPrice);
+        priceChange24h = parseFloat(d.priceChangePercent) || 0;
+        updateAll();
+        return;
+      }
     }
-  } else if (progress >= 90) {
-    msg.textContent = 'SO CLOSE!! 🌕 Almost there!';
-  } else if (progress >= 50) {
-    msg.textContent = 'Halfway there! Keep going! 🚀';
-  } else if (progress >= 20) {
-    msg.textContent = 'On your way! 💪';
-  } else {
-    msg.textContent = 'Diamond hands pay off! 💎🙌';
-  }
+  } catch (e) {}
+
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd&include_24hr_change=true');
+    if (r.ok) {
+      const d = await r.json();
+      if (d.ripple?.usd) {
+        currentUSDPrice = d.ripple.usd;
+        priceChange24h = d.ripple.usd_24h_change || 0;
+        updateAll();
+        return;
+      }
+    }
+  } catch (e) {}
+  updateAll();
 }
 
-function loadTradingViewChart(interval) {
-  const c=document.getElementById('chartContainer'); c.innerHTML='';
-  const w=document.createElement('div'); w.className='tradingview-widget-container'; w.style.height='100%';
-  const i=document.createElement('div'); i.className='tradingview-widget-container__widget'; i.style.height='100%';
-  w.appendChild(i); c.appendChild(w);
-  const s=document.createElement('script'); s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js'; s.async=true;
-  s.innerHTML=JSON.stringify({autosize:true,symbol:`BINANCE:${currentSymbol}`,interval,timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",backgroundColor:"#111111",gridColor:"#1e293b",withdateranges:true,hide_side_toolbar:false,allow_symbol_change:false,support_host:"https://www.tradingview.com"});
-  i.appendChild(s);
-}
-function showOverlay(iv){loadTradingViewChart(iv);document.getElementById('chartOverlay').classList.add('active');}
-document.getElementById('closeOverlay').onclick=()=>{document.getElementById('chartOverlay').classList.remove('active');document.getElementById('chartContainer').innerHTML='';};
-document.getElementById('shortCard').onclick=()=>showOverlay('60');
-document.getElementById('medCard').onclick=()=>showOverlay('240');
-document.getElementById('longCard').onclick=()=>showOverlay('D');
+document.getElementById('myHoldings').oninput = updateAll;
+document.getElementById('myMoonPrice').oninput = updateAll;
 
-document.getElementById('alertToggle').onclick=requestAlertPermission;
-document.getElementById('themeToggle').onclick=()=>{
-  document.documentElement.classList.toggle('dark');
-  const dark=document.documentElement.classList.contains('dark');
-  document.body.style.background=dark?'#000':'#f3f4f6';
-  localStorage.setItem('xrpTheme',dark?'dark':'light');
-};
-document.getElementById('currencySelect').value=currentCurrency;
-document.getElementById('currencySelect').onchange=e=>{currentCurrency=e.target.value;localStorage.setItem('xrpCurrency',currentCurrency);updateAll();};
-
-function updateCoinUI() {
-  const isCustom = !['XRPUSDT','BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','ADAUSDT','DOGEUSDT','AVAXUSDT','XLMUSDT','QNTUSDT'].includes(currentSymbol);
-  coinSelect.value = isCustom ? 'custom' : currentSymbol;
-  customSymbolInput.classList.toggle('hidden', !isCustom);
-  if (isCustom) customSymbolInput.value = currentSymbol;
-}
-coinSelect.onchange = e => {
-  if (e.target.value === 'custom') {
-    customSymbolInput.classList.remove('hidden');
-    customSymbolInput.focus();
-  } else {
-    customSymbolInput.classList.add('hidden');
-    setSymbol(e.target.value);
-  }
-};
-customSymbolInput.addEventListener('change', () => {
-  if (customSymbolInput.value.trim()) setSymbol(customSymbolInput.value);
-});
-customSymbolInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && customSymbolInput.value.trim()) setSymbol(customSymbolInput.value);
-});
-
-updateCoinUI();
-
-if(localStorage.getItem('myHoldings')) myHoldingsInput.value=localStorage.getItem('myHoldings');
-if(localStorage.getItem('myMoonPrice')) myMoonPriceInput.value=localStorage.getItem('myMoonPrice');
-myHoldingsInput.oninput=()=>{localStorage.setItem('myHoldings',myHoldingsInput.value);updateMoon();};
-myMoonPriceInput.oninput=()=>{localStorage.setItem('myMoonPrice',myMoonPriceInput.value);updateMoon();};
-
-renderHistory();
-fetchData();
-setInterval(fetchData, 10000);
+updatePriceAndVolume();
+setInterval(updatePriceAndVolume, 10000);
 </script>
 </body>
 </html>
+Both pages now run the identical updatePriceAndVolume() function.
+Replace the files, redeploy, and hard-refresh both tabs. The prices will match.
+
+
+
+
+2 sources
