@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Signal Tracker • Enhanced</title>
+  <title>Crypto Signals Tracker • Enhanced</title>
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -23,7 +23,6 @@
     .modal.open{display:flex}
     .tv-container{width:95%;height:90%;background:#000;border-radius:1rem;overflow:hidden;position:relative}
     .close-chart{position:absolute;top:12px;right:16px;background:#ef4444;color:white;border:none;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;z-index:10}
-    /* Force calculator text to stay white */
     .calculator-section, .calculator-section * { color: #ffffff !important; }
     .calculator-section input { color: #ffffff !important; background: #1e293b !important; }
   </style>
@@ -31,7 +30,7 @@
 <body class="min-h-screen">
   <div class="max-w-6xl mx-auto p-4">
     <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
-      <h1 class="text-3xl font-bold">Crypto Signal Tracker</h1>
+      <h1 class="text-3xl font-bold">Crypto Signals Tracker</h1>
       <div class="flex items-center gap-3 flex-wrap">
         <span class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-bold">LIVE</span>
         
@@ -91,7 +90,6 @@
       </div>
     </div>
 
-    <!-- Calculator section now forces white text -->
     <div class="calculator-section bg-slate-900 rounded-2xl p-6" style="background:linear-gradient(135deg,#1e293b,#0f172a)">
       <h3 class="text-xl font-bold mb-4">🌕 Crypto Calculator 🌕</h3>
       <div class="grid md:grid-cols-2 gap-4">
@@ -182,6 +180,48 @@ function formatPrice(usd) {
   return (symbols[currentCurrency] || currentCurrency + ' ') + val.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:4});
 }
 
+// Real signal logic based on 24h change
+function generateSignals() {
+  const change = priceChange24h || 0;
+  const abs = Math.abs(change);
+
+  // Short-term (sensitive to recent move)
+  let shortSig = 'HOLD', shortStr = 50, shortReason = 'Neutral momentum';
+  if (change > 3) { shortSig = 'BUY'; shortStr = Math.min(95, 60 + abs * 3); shortReason = 'Strong short-term momentum'; }
+  else if (change > 1) { shortSig = 'BUY'; shortStr = 55 + abs * 2; shortReason = 'Positive short-term momentum'; }
+  else if (change < -3) { shortSig = 'SELL'; shortStr = Math.min(90, 55 + abs * 3); shortReason = 'Strong short-term weakness'; }
+  else if (change < -1) { shortSig = 'SELL'; shortStr = 50 + abs * 2; shortReason = 'Negative short-term momentum'; }
+  else { shortStr = 45 + abs * 2; }
+
+  // Medium-term (slightly less sensitive)
+  let medSig = 'HOLD', medStr = 50, medReason = 'Neutral medium-term';
+  if (change > 5) { medSig = 'BUY'; medStr = Math.min(90, 65 + abs * 2); medReason = 'Strong medium-term trend'; }
+  else if (change > 2) { medSig = 'BUY'; medStr = 58 + abs * 1.5; medReason = 'Positive medium-term bias'; }
+  else if (change < -5) { medSig = 'SELL'; medStr = Math.min(85, 55 + abs * 2); medReason = 'Medium-term weakness'; }
+  else if (change < -2) { medSig = 'SELL'; medStr = 50 + abs; medReason = 'Negative medium-term bias'; }
+  else { medStr = 48 + abs; }
+
+  // Long-term (more conservative, favors accumulation on dips)
+  let longSig = 'ACCUMULATE', longStr = 60, longReason = 'Long-term accumulation zone';
+  if (change > 8) { longSig = 'BUY'; longStr = Math.min(88, 70 + abs); longReason = 'Strong long-term momentum'; }
+  else if (change > 3) { longSig = 'HOLD'; longStr = 62 + abs; longReason = 'Positive long-term structure'; }
+  else if (change < -8) { longSig = 'ACCUMULATE'; longStr = Math.min(92, 75 + abs); longReason = 'Deep dip – accumulation opportunity'; }
+  else if (change < -3) { longSig = 'ACCUMULATE'; longStr = 68 + abs; longReason = 'Pullback – favorable for accumulation'; }
+  else { longStr = 58 + abs * 0.5; }
+
+  // Apply to DOM
+  const set = (prefix, sig, str, reason) => {
+    const el = document.getElementById(prefix + 'Signal');
+    el.textContent = sig;
+    el.className = 'text-xl font-bold ' + (sig === 'BUY' || sig === 'ACCUMULATE' ? 'buy' : sig === 'SELL' ? 'sell' : 'hold');
+    document.getElementById(prefix + 'Strength').textContent = Math.round(str);
+    document.getElementById(prefix + 'Reason').textContent = reason;
+  };
+  set('short', shortSig, shortStr, shortReason);
+  set('med', medSig, medStr, medReason);
+  set('long', longSig, longStr, longReason);
+}
+
 function updateAll() {
   const priceText = formatPrice(currentUSDPrice);
   const changeText = priceChange24h >= 0 ? `+${priceChange24h.toFixed(2)}%` : `${priceChange24h.toFixed(2)}%`;
@@ -192,18 +232,14 @@ function updateAll() {
     if (el) el.innerHTML = `${priceText} <span class="${changeClass}">${changeText}</span>`;
   });
 
+  generateSignals();
+
   const holdings = parseFloat(document.getElementById('myHoldings').value) || 0;
   const moon = parseFloat(document.getElementById('myMoonPrice').value) || 0;
   document.getElementById('portfolioValue').textContent = formatPrice(holdings * (currentUSDPrice || 0));
   document.getElementById('moonValue').textContent = formatPrice(holdings * moon);
   if (currentUSDPrice && moon) {
     document.getElementById('moonProgress').textContent = (currentUSDPrice / moon * 100).toFixed(1) + '% to your target!';
-  }
-
-  if (currentUSDPrice) {
-    document.getElementById('shortStrength').textContent = Math.floor(60 + Math.random()*20);
-    document.getElementById('medStrength').textContent = Math.floor(55 + Math.random()*25);
-    document.getElementById('longStrength').textContent = Math.floor(70 + Math.random()*20);
   }
 }
 
