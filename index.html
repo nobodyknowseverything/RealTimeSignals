@@ -64,7 +64,7 @@
       </div>
     </div>
 
-    <h2 class="text-xl mb-4">Real-Time Signals • RSI + Momentum + Sentiment : (Click to view chart) <span id="currentCoinLabel">XRP</span></h2>
+    <h2 class="text-xl mb-4">Real-Time Signals • RSI + Momentum + Sentiment : <span id="currentCoinLabel">XRP</span></h2>
 
     <div class="grid md:grid-cols-3 gap-6 mb-8">
       <div class="signal-card" onclick="openChart()">
@@ -98,14 +98,16 @@
           <input id="myHoldings" type="number" value="1000" class="w-full mt-1 p-3 rounded bg-slate-800">
         </div>
         <div>
-          <label>Target Price</label>
+          <label>Target Price (<span id="currencyLabel">USD</span>)</label>
           <input id="myMoonPrice" type="number" value="100" class="w-full mt-1 p-3 rounded bg-slate-800">
         </div>
       </div>
       <div class="text-center mt-6">
+        <div class="text-sm opacity-80">Current Portfolio Value</div>
         <div class="text-3xl font-bold" id="portfolioValue">Loading...</div>
-        <div id="moonProgress" class="text-sm"></div>
-        <div class="text-2xl mt-2" id="moonValue"></div>
+        <div id="moonProgress" class="text-sm mt-2"></div>
+        <div class="text-sm opacity-80 mt-4">Target Value</div>
+        <div class="text-2xl mt-1" id="moonValue"></div>
       </div>
     </div>
   </div>
@@ -127,6 +129,7 @@ const rates = { USD:1, AUD:1.52, EUR:0.92, GBP:0.79, CAD:1.36, JPY:149 };
 const coinSelect = document.getElementById('coinSelect');
 const customSymbolInput = document.getElementById('customSymbol');
 const currentCoinLabel = document.getElementById('currentCoinLabel');
+const currencyLabel = document.getElementById('currencyLabel');
 
 function updateCoinUI() {
   const known = ['XRPUSDT','BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','ADAUSDT','DOGEUSDT','AVAXUSDT','XLMUSDT','QNTUSDT'];
@@ -164,8 +167,10 @@ document.getElementById('currencySelect').value = currentCurrency;
 document.getElementById('currencySelect').onchange = e => {
   currentCurrency = e.target.value;
   localStorage.setItem('xrpCurrency', currentCurrency);
+  currencyLabel.textContent = currentCurrency;
   updateAll();
 };
+currencyLabel.textContent = currentCurrency;
 
 document.getElementById('themeToggle').onclick = () => {
   document.documentElement.classList.toggle('dark');
@@ -173,19 +178,24 @@ document.getElementById('themeToggle').onclick = () => {
 };
 if (localStorage.getItem('theme') === 'light') document.documentElement.classList.remove('dark');
 
+function formatMoney(amount) {
+  if (amount == null || isNaN(amount)) return 'Loading...';
+  const symbols = {USD:'$',AUD:'A$',EUR:'€',GBP:'£',CAD:'C$',JPY:'¥'};
+  const symbol = symbols[currentCurrency] || currentCurrency + ' ';
+  return symbol + amount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
 function formatPrice(usd) {
   if (!usd) return 'Loading...';
   const val = usd * (rates[currentCurrency] || 1);
-  const symbols = {USD:'$',AUD:'A$',EUR:'€',GBP:'£',CAD:'C$',JPY:'¥'};
-  return (symbols[currentCurrency] || currentCurrency + ' ') + val.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:4});
+  return formatMoney(val);
 }
 
-// Real signal logic based on 24h change
+// Real signal logic
 function generateSignals() {
   const change = priceChange24h || 0;
   const abs = Math.abs(change);
 
-  // Short-term (sensitive to recent move)
   let shortSig = 'HOLD', shortStr = 50, shortReason = 'Neutral momentum';
   if (change > 3) { shortSig = 'BUY'; shortStr = Math.min(95, 60 + abs * 3); shortReason = 'Strong short-term momentum'; }
   else if (change > 1) { shortSig = 'BUY'; shortStr = 55 + abs * 2; shortReason = 'Positive short-term momentum'; }
@@ -193,7 +203,6 @@ function generateSignals() {
   else if (change < -1) { shortSig = 'SELL'; shortStr = 50 + abs * 2; shortReason = 'Negative short-term momentum'; }
   else { shortStr = 45 + abs * 2; }
 
-  // Medium-term (slightly less sensitive)
   let medSig = 'HOLD', medStr = 50, medReason = 'Neutral medium-term';
   if (change > 5) { medSig = 'BUY'; medStr = Math.min(90, 65 + abs * 2); medReason = 'Strong medium-term trend'; }
   else if (change > 2) { medSig = 'BUY'; medStr = 58 + abs * 1.5; medReason = 'Positive medium-term bias'; }
@@ -201,7 +210,6 @@ function generateSignals() {
   else if (change < -2) { medSig = 'SELL'; medStr = 50 + abs; medReason = 'Negative medium-term bias'; }
   else { medStr = 48 + abs; }
 
-  // Long-term (more conservative, favors accumulation on dips)
   let longSig = 'ACCUMULATE', longStr = 60, longReason = 'Long-term accumulation zone';
   if (change > 8) { longSig = 'BUY'; longStr = Math.min(88, 70 + abs); longReason = 'Strong long-term momentum'; }
   else if (change > 3) { longSig = 'HOLD'; longStr = 62 + abs; longReason = 'Positive long-term structure'; }
@@ -209,7 +217,6 @@ function generateSignals() {
   else if (change < -3) { longSig = 'ACCUMULATE'; longStr = 68 + abs; longReason = 'Pullback – favorable for accumulation'; }
   else { longStr = 58 + abs * 0.5; }
 
-  // Apply to DOM
   const set = (prefix, sig, str, reason) => {
     const el = document.getElementById(prefix + 'Signal');
     el.textContent = sig;
@@ -235,11 +242,23 @@ function updateAll() {
   generateSignals();
 
   const holdings = parseFloat(document.getElementById('myHoldings').value) || 0;
-  const moon = parseFloat(document.getElementById('myMoonPrice').value) || 0;
-  document.getElementById('portfolioValue').textContent = formatPrice(holdings * (currentUSDPrice || 0));
-  document.getElementById('moonValue').textContent = formatPrice(holdings * moon);
-  if (currentUSDPrice && moon) {
-    document.getElementById('moonProgress').textContent = (currentUSDPrice / moon * 100).toFixed(1) + '% to your target!';
+  const targetPriceInSelectedCurrency = parseFloat(document.getElementById('myMoonPrice').value) || 0;
+
+  // Current portfolio value (USD price converted to selected currency)
+  const currentPriceInSelected = (currentUSDPrice || 0) * (rates[currentCurrency] || 1);
+  const portfolio = holdings * currentPriceInSelected;
+  document.getElementById('portfolioValue').textContent = formatMoney(portfolio);
+
+  // Target value = holdings × the target price the user typed (already in selected currency)
+  const targetValue = holdings * targetPriceInSelectedCurrency;
+  document.getElementById('moonValue').textContent = formatMoney(targetValue);
+
+  // Progress: current price in selected currency vs the target price entered
+  if (currentPriceInSelected && targetPriceInSelectedCurrency) {
+    const pct = (currentPriceInSelected / targetPriceInSelectedCurrency * 100).toFixed(1);
+    document.getElementById('moonProgress').textContent = pct + '% to your target';
+  } else {
+    document.getElementById('moonProgress').textContent = '';
   }
 }
 
